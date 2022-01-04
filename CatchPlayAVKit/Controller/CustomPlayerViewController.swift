@@ -89,10 +89,10 @@ class CustomPlayerViewController: UIViewController {
         view.addSubview(playerView)
         playerView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            playerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            playerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            playerView.topAnchor.constraint(equalTo: view.topAnchor),
-            playerView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            playerView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            playerView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            playerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            playerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
     }
     
@@ -100,10 +100,10 @@ class CustomPlayerViewController: UIViewController {
         view.addSubview(playerControlView)
         playerControlView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            playerControlView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            playerControlView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            playerControlView.topAnchor.constraint(equalTo: view.topAnchor),
-            playerControlView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            playerControlView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            playerControlView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            playerControlView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            playerControlView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
     }
     
