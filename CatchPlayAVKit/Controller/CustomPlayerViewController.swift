@@ -31,7 +31,11 @@ class CustomPlayerViewController: UIViewController {
         return playerControlView
     }()
     
+    var noNetworkAlert: UIAlertController?
+    
     // MARK: - properties
+    
+    lazy var networkManager = NetworkManager()
     
     private var isPlaybackBufferEmptyObserver: NSKeyValueObservation?
     
@@ -81,6 +85,7 @@ class CustomPlayerViewController: UIViewController {
         setPlayerView()
         setPlayerControlView()
         setPlayContent()
+        checkNetwork(connectionHandler: connectionHandler, noConnectionHandler: noConnectionHandler)
     }
     
     // MARK: - UI method
@@ -171,7 +176,6 @@ class CustomPlayerViewController: UIViewController {
     // MARK: - playerItem method
     
     private func observeBuffering(previousPlayerItem: AVPlayerItem? = nil, currentPlayerItem: AVPlayerItem?) {
-        
         guard let currentPlayerItem = currentPlayerItem else { return }
         isPlaybackBufferEmptyObserver = currentPlayerItem.observe(\.isPlaybackBufferEmpty, changeHandler: onIsPlaybackBufferEmptyObserverChanged)
         isPlaybackBufferFullObserver = currentPlayerItem.observe(\.isPlaybackBufferFull, changeHandler: onIsPlaybackBufferFullObserverChanged)
@@ -371,6 +375,26 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
         }
     }
     
+}
+
+// MARK: - CheckNetWorkProtocol
+
+extension CustomPlayerViewController: CheckNetWorkProtocol {
+    
+    private func connectionHandler() {
+        DispatchQueue.main.async {
+            if let noNetworkAlert = self.noNetworkAlert {
+                self.dismissAlert(noNetworkAlert, completion: nil)
+            }
+        }
+    }
+    
+    private func noConnectionHandler() {
+        DispatchQueue.main.async {
+            self.noNetworkAlert = self.popAlert(title: Constant.networkAlertTitle, message: Constant.networkAlertMessage)
+        }
+    }
+
 }
 
 
