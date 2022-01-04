@@ -33,6 +33,7 @@ protocol CustomPlayerControlDelegate: AnyObject {
     func sliderTouchEnded(_ playerControlview: PlayerControlView,_ sliderValue: Double)
     func jumpToTime(_ playerControlview: PlayerControlView, _ jumpTimeType: JumpTimeType)
     func adjustSpeed(_ playerControlview: PlayerControlView, _ playSpeedRate: Float)
+    func proceedNextPlayerItem(_ playerControlview: PlayerControlView)
 }
 
 class PlayerControlView: UIView {
