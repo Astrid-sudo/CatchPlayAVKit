@@ -22,7 +22,9 @@ class CustomPlayerViewController: UIViewController {
     // MARK: - UI properties
     
     private lazy var playerView: PlayerView = {
-        return PlayerView()
+        let playerView = PlayerView()
+        playerView.delegate = self
+        return playerView
     }()
     
     private lazy var playerControlView: PlayerControlView = {
@@ -52,6 +54,8 @@ class CustomPlayerViewController: UIViewController {
     private var timeObserverToken: Any?
     
     private var bufferTimer: BufferTimer?
+    
+    private var autoHideTimer: BufferTimer?
     
     var currentTime: CMTime = .zero {
         didSet {
@@ -154,6 +158,7 @@ class CustomPlayerViewController: UIViewController {
         player.pause()
         playerView.playerState = .pause
         bufferTimer?.cancel()
+        cancelAutoHidePlayerControl()
         
         playerView.playerState = .buffering
         playerControlView.togglePlayButtonImage(.indicatorView)
@@ -162,6 +167,7 @@ class CustomPlayerViewController: UIViewController {
             if playerItem.isPlaybackLikelyToKeepUp {
                 player.play()
                 player.rate = self.playSpeedRate
+                self.autoHidePlayerControl()
                 self.playerView.playerState = .playing
                 self.playerControlView.togglePlayButtonImage(.pause)
             } else {
@@ -245,6 +251,36 @@ class CustomPlayerViewController: UIViewController {
         }
     }
     
+    private func hidePlayerControl(isHidden: Bool) {
+        
+        if isHidden {
+            UIView.animate(withDuration: 0.4, delay: 0, options: .curveEaseIn) {
+                self.playerControlView.alpha = 0
+            }
+            Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { _ in
+                self.playerControlView.isHidden = isHidden
+            }
+        
+        } else {
+            self.playerControlView.isHidden = isHidden
+            UIView.animate(withDuration: 0.4, delay: 0, options: .curveEaseOut) {
+                self.playerControlView.alpha = 1
+            }
+        }
+    }
+    
+    func autoHidePlayerControl() {
+        autoHideTimer = BufferTimer(interval: 0, delaySecs: 3, repeats: false, action: { [weak self] _ in
+            guard let self = self else { return }
+            self.hidePlayerControl(isHidden: true)
+        })
+        autoHideTimer?.start()
+    }
+    
+    func cancelAutoHidePlayerControl() {
+        autoHideTimer?.cancel()
+    }
+    
 }
 
 // MARK: - CustomPlayerControlDelegate
@@ -258,12 +294,14 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
         case .buffering:
             playerView.player?.play()
             playerView.player?.rate = playSpeedRate
+            autoHidePlayerControl()
             playerControlview.togglePlayButtonImage(.indicatorView)
             print("buffering")
             
         case .unknow, .pause, .readyToPlay:
             playerView.player?.play()
             playerView.player?.rate = playSpeedRate
+            autoHidePlayerControl()
             playerView.playerState = .playing
             
             playerControlview.togglePlayButtonImage(.pause)
@@ -273,6 +311,8 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
         case .playing:
             playerView.player?.pause()
             playerView.playerState = .pause
+            cancelAutoHidePlayerControl()
+
             
             playerControlview.togglePlayButtonImage(.play)
             removePeriodicTimeObserver()
@@ -320,6 +360,7 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
     func pauseToSeek(_ playerControlview: PlayerControlView) {
         playerView.player?.pause()
         playerView.playerState = .pause
+        cancelAutoHidePlayerControl()
     }
     
     func sliderTouchEnded(_ playerControlview: PlayerControlView, _ sliderValue: Double) {
@@ -336,6 +377,7 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
         } else if playerItem.isPlaybackLikelyToKeepUp {
             player.play()
             playerView.player?.rate = playSpeedRate
+            autoHidePlayerControl()
             playerView.playerState = .playing
             playerControlview.togglePlayButtonImage(.pause)
             
@@ -352,11 +394,13 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
             playerView.player?.play()
             self.playSpeedRate = playSpeedRate
             playerView.player?.rate = playSpeedRate
+            autoHidePlayerControl()
         } else {
             self.playSpeedRate = playSpeedRate
             playerView.player?.rate = playSpeedRate
             playerView.player?.pause()
             playerView.playerState = .pause
+            cancelAutoHidePlayerControl()
         }
     }
     
@@ -373,6 +417,10 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
             observePlayerItemStatus(currentPlayerItem: theLastItem)
             observeItemPlayEnd(previousPlayerItem: currentItem, currentPlayerItem: theLastItem)
         }
+    }
+    
+    func handleTapGesture(_ playerControlview: PlayerControlView) {
+        hidePlayerControl(isHidden: true)
     }
     
 }
@@ -395,6 +443,15 @@ extension CustomPlayerViewController: CheckNetWorkProtocol {
         }
     }
 
+}
+
+extension CustomPlayerViewController: PlayerViewDelegate {
+    
+    func handleTapGesture(from playerView: PlayerView) {
+        hidePlayerControl(isHidden: false)
+        autoHidePlayerControl()
+    }
+    
 }
 
 

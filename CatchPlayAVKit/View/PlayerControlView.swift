@@ -34,6 +34,7 @@ protocol CustomPlayerControlDelegate: AnyObject {
     func jumpToTime(_ playerControlview: PlayerControlView, _ jumpTimeType: JumpTimeType)
     func adjustSpeed(_ playerControlview: PlayerControlView, _ playSpeedRate: Float)
     func proceedNextPlayerItem(_ playerControlview: PlayerControlView)
+    func handleTapGesture(_ playerControlview: PlayerControlView)
 }
 
 class PlayerControlView: UIView {
@@ -62,6 +63,7 @@ class PlayerControlView: UIView {
         super.init(frame: .zero)
         isUserInteractionEnabled = true
         configUI()
+        addGestureRecognizer(tapGesture)
     }
     
     required init?(coder _: NSCoder) {
@@ -307,6 +309,11 @@ class PlayerControlView: UIView {
         return view
     }()
     
+    private lazy var tapGesture: UITapGestureRecognizer = {
+        let gesture = UITapGestureRecognizer(target: self, action: #selector(tapAction))
+        return gesture
+    }()
+    
     // MARK: - player method
     
     @objc func togglePlay() {
@@ -375,6 +382,10 @@ class PlayerControlView: UIView {
     
     @objc func adjustVolume() {
         
+    }
+    
+    @objc func tapAction() {
+        delegate?.handleTapGesture(self)
     }
     
     // MARK: - UI method
