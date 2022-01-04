@@ -7,6 +7,11 @@
 
 import UIKit
 
+enum JumpTimeType {
+    case forward(_ seconds: Float64)
+    case backward(_ seconds: Float64)
+}
+
 enum PlayButtonType {
     case play
     case pause
@@ -23,6 +28,11 @@ enum PlayButtonType {
 
 protocol CustomPlayerControlDelegate: AnyObject {
     func togglePlay(_ playerControlview: PlayerControlView)
+    func slideToTime(_ playerControlview: PlayerControlView,_ sliderValue: Double)
+    func pauseToSeek(_ playerControlview: PlayerControlView)
+    func sliderTouchEnded(_ playerControlview: PlayerControlView,_ sliderValue: Double)
+    func jumpToTime(_ playerControlview: PlayerControlView, _ jumpTimeType: JumpTimeType)
+    func adjustSpeed(_ playerControlview: PlayerControlView, _ playSpeedRate: Float)
 }
 
 class PlayerControlView: UIView {
@@ -46,7 +56,7 @@ class PlayerControlView: UIView {
     }
     
     weak var delegate: CustomPlayerControlDelegate?
-
+    
     // MARK: - UI properties
     
     private var backgroundDimView: UIView = {
@@ -212,7 +222,7 @@ class PlayerControlView: UIView {
     }()
     
     private lazy var speedButtons = [slowSpeedButton, normalSpeedButton, fastSpeedButton]
-
+    
     private var toggleLockButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(systemName: Constant.lockOpen), for: .normal)
@@ -291,15 +301,27 @@ class PlayerControlView: UIView {
     }
     
     @objc func goforward() {
-        
+        delegate?.jumpToTime(self, .forward(15))
     }
     
     @objc func gobackward() {
-        
+        delegate?.jumpToTime(self, .backward(15))
     }
     
     @objc func adjustSpeed(button: UIButton) {
         
+        if button == slowSpeedButton {
+            delegate?.adjustSpeed(self, 0.5)
+        }
+        
+        if button == normalSpeedButton {
+            delegate?.adjustSpeed(self, 1)
+        }
+        
+        if button == fastSpeedButton {
+            delegate?.adjustSpeed(self, 1.5)
+        }
+
     }
     
     @objc func toggleLock() {
@@ -323,15 +345,15 @@ class PlayerControlView: UIView {
     }
     
     @objc func progressSliderValueChanged() {
-        
+        delegate?.slideToTime(self, Double(progressSlider.value))
     }
     
     @objc func progressSliderTouchBegan() {
-        
+        delegate?.pauseToSeek(self)
     }
     
     @objc func progressSliderTouchEnded() {
-        
+        delegate?.sliderTouchEnded(self, Double(progressSlider.value))
     }
     
     @objc func adjustBrightness() {
@@ -495,12 +517,12 @@ class PlayerControlView: UIView {
         guard !(seconds.isNaN || seconds.isInfinite) else {
             return "00:00"
         }
-            let time = Int(ceil(seconds))
-            let hours = time / 3600
-            let minutes = time / 60
-            let seconds = time % 60
-            let timecodeString = hours == .zero ? String(format: "%02ld:%02ld", minutes, seconds) : String(format: "%02ld:%02ld:%02ld", hours, minutes, seconds)
-            return timecodeString
+        let time = Int(ceil(seconds))
+        let hours = time / 3600
+        let minutes = time / 60
+        let seconds = time % 60
+        let timecodeString = hours == .zero ? String(format: "%02ld:%02ld", minutes, seconds) : String(format: "%02ld:%02ld:%02ld", hours, minutes, seconds)
+        return timecodeString
     }
     
     // MARK: - method for CustomPlayViewController
@@ -534,5 +556,33 @@ class PlayerControlView: UIView {
         setDrationLabel(duration)
     }
     
-    
+    func setSpeedButtonColor(selecedSpeed: Float) {
+        
+        var selectedButton: UIButton?
+        
+        if selecedSpeed == 0.5 {
+            selectedButton = slowSpeedButton
+        }
+        
+        if selecedSpeed == 1 {
+            selectedButton = normalSpeedButton
+        }
+        
+        if selecedSpeed == 1.5 {
+            selectedButton = fastSpeedButton
+        }
+        
+        guard let selectedButton = selectedButton else { return }
+        
+        for button in speedButtons {
+            button.tintColor = .white
+            button.setTitleColor(.white, for: .normal)
+
+            if button == selectedButton {
+                button.tintColor = .orange
+                button.setTitleColor(.orange, for: .normal)
+            }
+        }
+    }
+
 }
