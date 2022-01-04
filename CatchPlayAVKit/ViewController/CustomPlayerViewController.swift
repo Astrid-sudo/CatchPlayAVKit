@@ -27,6 +27,7 @@ class CustomPlayerViewController: UIViewController {
     
     private lazy var playerControlView: PlayerControlView = {
         let playerControlView = PlayerControlView()
+        playerControlView.delegate = self
         return playerControlView
     }()
     
@@ -189,4 +190,44 @@ class CustomPlayerViewController: UIViewController {
     }
     
 }
+
+// MARK: - CustomPlayerControlDelegate
+
+extension CustomPlayerViewController: CustomPlayerControlDelegate {
+    
+    func togglePlay(_ playerControlview: PlayerControlView) {
+        observeBuffering(for:playerView.player?.currentItem)
+        
+        switch playerView.playerState {
+            
+        case .buffering:
+            playerView.player?.play()
+            playerControlview.togglePlayButtonImage(.indicatorView)
+            print("buffering")
+
+        case .unknow, .pause, .readyToPlay:
+            playerView.player?.play()
+            playerView.playerState = .playing
+            
+            playerControlview.togglePlayButtonImage(.pause)
+            addPeriodicTimeObserver()
+            print("unknow.pause.readyToPlay")
+
+        case .playing:
+            playerView.player?.pause()
+            playerView.playerState = .pause
+            
+            playerControlview.togglePlayButtonImage(.play)
+            removePeriodicTimeObserver()
+            print("playing")
+
+        default:
+            print("break")
+            break
+            
+        }
+    }
+
+}
+
 

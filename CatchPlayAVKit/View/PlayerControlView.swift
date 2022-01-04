@@ -21,6 +21,10 @@ enum PlayButtonType {
     }
 }
 
+protocol CustomPlayerControlDelegate: AnyObject {
+    func togglePlay(_ playerControlview: PlayerControlView)
+}
+
 class PlayerControlView: UIView {
     
     var screenWidth: CGFloat {
@@ -41,6 +45,8 @@ class PlayerControlView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    weak var delegate: CustomPlayerControlDelegate?
+
     // MARK: - UI properties
     
     private var backgroundDimView: UIView = {
@@ -281,7 +287,7 @@ class PlayerControlView: UIView {
     // MARK: - player method
     
     @objc func togglePlay() {
-        
+        delegate?.togglePlay(self)
     }
     
     @objc func goforward() {
