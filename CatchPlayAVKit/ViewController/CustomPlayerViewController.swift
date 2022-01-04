@@ -65,6 +65,15 @@ class CustomPlayerViewController: UIViewController {
         }
     }
     
+    var playSpeedRate: Float = 1 {
+        didSet {
+            if playSpeedRate != oldValue {
+                playerControlView.setSpeedButtonColor(selecedSpeed: playSpeedRate)
+            }
+        }
+    }
+
+    
     // MARK: - life cycle
     
     override func viewDidLoad() {
@@ -138,6 +147,7 @@ class CustomPlayerViewController: UIViewController {
             guard let self = self else { return }
             if playerItem.isPlaybackLikelyToKeepUp {
                 player.play()
+                player.rate = self.playSpeedRate
                 self.playerView.playerState = .playing
                 self.playerControlView.togglePlayButtonImage(.pause)
             } else {
@@ -229,11 +239,13 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
             
         case .buffering:
             playerView.player?.play()
+            playerView.player?.rate = playSpeedRate
             playerControlview.togglePlayButtonImage(.indicatorView)
             print("buffering")
             
         case .unknow, .pause, .readyToPlay:
             playerView.player?.play()
+            playerView.player?.rate = playSpeedRate
             playerView.playerState = .playing
             
             playerControlview.togglePlayButtonImage(.pause)
@@ -305,12 +317,30 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
             
         } else if playerItem.isPlaybackLikelyToKeepUp {
             player.play()
+            playerView.player?.rate = playSpeedRate
             playerView.playerState = .playing
             playerControlview.togglePlayButtonImage(.pause)
             
         } else {
             bufferingForSeconds(playerItem: playerItem, player: player)
         }
+    }
+    
+    func adjustSpeed(_ playerControlview: PlayerControlView, _ playSpeedRate: Float) {
+        playerView.player?.currentItem?.audioTimePitchAlgorithm = .spectral
+
+        if playerView.playerState == .playing {
+            playerView.player?.pause()
+            playerView.player?.play()
+            self.playSpeedRate = playSpeedRate
+            playerView.player?.rate = playSpeedRate
+        } else {
+            self.playSpeedRate = playSpeedRate
+            playerView.player?.rate = playSpeedRate
+            playerView.player?.pause()
+            playerView.playerState = .pause
+        }
+
     }
     
 }

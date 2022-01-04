@@ -32,7 +32,7 @@ protocol CustomPlayerControlDelegate: AnyObject {
     func pauseToSeek(_ playerControlview: PlayerControlView)
     func sliderTouchEnded(_ playerControlview: PlayerControlView,_ sliderValue: Double)
     func jumpToTime(_ playerControlview: PlayerControlView, _ jumpTimeType: JumpTimeType)
-    
+    func adjustSpeed(_ playerControlview: PlayerControlView, _ playSpeedRate: Float)
 }
 
 class PlayerControlView: UIView {
@@ -310,6 +310,18 @@ class PlayerControlView: UIView {
     
     @objc func adjustSpeed(button: UIButton) {
         
+        if button == slowSpeedButton {
+            delegate?.adjustSpeed(self, 0.5)
+        }
+        
+        if button == normalSpeedButton {
+            delegate?.adjustSpeed(self, 1)
+        }
+        
+        if button == fastSpeedButton {
+            delegate?.adjustSpeed(self, 1.5)
+        }
+
     }
     
     @objc func toggleLock() {
@@ -544,5 +556,33 @@ class PlayerControlView: UIView {
         setDrationLabel(duration)
     }
     
-    
+    func setSpeedButtonColor(selecedSpeed: Float) {
+        
+        var selectedButton: UIButton?
+        
+        if selecedSpeed == 0.5 {
+            selectedButton = slowSpeedButton
+        }
+        
+        if selecedSpeed == 1 {
+            selectedButton = normalSpeedButton
+        }
+        
+        if selecedSpeed == 1.5 {
+            selectedButton = fastSpeedButton
+        }
+        
+        guard let selectedButton = selectedButton else { return }
+        
+        for button in speedButtons {
+            button.tintColor = .white
+            button.setTitleColor(.white, for: .normal)
+
+            if button == selectedButton {
+                button.tintColor = .orange
+                button.setTitleColor(.orange, for: .normal)
+            }
+        }
+    }
+
 }
