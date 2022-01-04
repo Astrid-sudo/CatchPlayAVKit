@@ -47,7 +47,7 @@ class CustomPlayerViewController: UIViewController {
     
     private var timeObserverToken: Any?
     
-
+    private var bufferTimer: BufferTimer?
     
     var currentTime: CMTime = .zero {
         didSet {
@@ -122,6 +122,33 @@ class CustomPlayerViewController: UIViewController {
         }
     }
     
+    /// Set a timer to check if AVPlayerItem.isPlaybackLikelyToKeepUp
+    private func bufferingForSeconds(playerItem: AVPlayerItem, player: AVPlayer) {
+        
+        guard playerItem.status == .readyToPlay,
+              playerView.playerState != .failed else { return }
+        
+        player.pause()
+        playerView.playerState = .pause
+        bufferTimer?.cancel()
+        
+        playerView.playerState = .buffering
+        playerControlView.togglePlayButtonImage(.indicatorView)
+        bufferTimer = BufferTimer(interval: 0, delaySecs: 3.0, repeats: false, action: { [weak self] _ in
+            guard let self = self else { return }
+            if playerItem.isPlaybackLikelyToKeepUp {
+                player.play()
+                self.playerView.playerState = .playing
+                self.playerControlView.togglePlayButtonImage(.pause)
+            } else {
+                self.bufferingForSeconds(playerItem: playerItem, player: player)
+            }
+        })
+        
+        bufferTimer?.start()
+        
+    }
+    
     // MARK: - playerItem method
     
     private func observeBuffering(for playerItem: AVPlayerItem?) {
@@ -130,19 +157,19 @@ class CustomPlayerViewController: UIViewController {
         isPlaybackBufferFullObserver = playerItem.observe(\.isPlaybackBufferFull, changeHandler: onIsPlaybackBufferFullObserverChanged)
         isPlaybackLikelyToKeepUpObserver = playerItem.observe(\.isPlaybackLikelyToKeepUp, changeHandler: onIsPlaybackLikelyToKeepUpObserverChanged)
     }
-
+    
     private func onIsPlaybackBufferEmptyObserverChanged(playerItem: AVPlayerItem, change: NSKeyValueObservedChange<Bool>) {
         if playerItem.isPlaybackBufferEmpty {
             playerControlView.showIdicatorView()
         }
     }
-
+    
     private func onIsPlaybackBufferFullObserverChanged(playerItem: AVPlayerItem, change: NSKeyValueObservedChange<Bool>) {
         if playerItem.isPlaybackBufferFull {
             playerControlView.removeIndicatorView()
         }
     }
-
+    
     private func onIsPlaybackLikelyToKeepUpObserverChanged(playerItem: AVPlayerItem, change: NSKeyValueObservedChange<Bool>) {
         if playerItem.isPlaybackLikelyToKeepUp {
             playerControlView.removeIndicatorView()
@@ -204,7 +231,7 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
             playerView.player?.play()
             playerControlview.togglePlayButtonImage(.indicatorView)
             print("buffering")
-
+            
         case .unknow, .pause, .readyToPlay:
             playerView.player?.play()
             playerView.playerState = .playing
@@ -212,7 +239,7 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
             playerControlview.togglePlayButtonImage(.pause)
             addPeriodicTimeObserver()
             print("unknow.pause.readyToPlay")
-
+            
         case .playing:
             playerView.player?.pause()
             playerView.playerState = .pause
@@ -220,14 +247,72 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
             playerControlview.togglePlayButtonImage(.play)
             removePeriodicTimeObserver()
             print("playing")
-
+            
         default:
             print("break")
             break
-            
         }
     }
-
+    
+    func jumpToTime(_ playerControlview: PlayerControlView, _ jumpTimeType: JumpTimeType) {
+        guard let player = playerView.player as? AVQueuePlayer,
+              let currentItem = player.currentItem else { return }
+        let currentSeconds = CMTimeGetSeconds(player.currentTime())
+        var seekSeconds: Float64 = .zero
+        
+        switch jumpTimeType {
+        case .forward(let associateSeconds):
+            seekSeconds = currentSeconds + associateSeconds
+        case .backward(let associateSeconds):
+            seekSeconds = currentSeconds - associateSeconds
+        }
+        
+        let currentDuration = CMTimeGetSeconds(currentItem.duration)
+        
+        seekSeconds = seekSeconds > currentDuration ? currentDuration : seekSeconds
+        seekSeconds = seekSeconds < 0 ? 0.0 : seekSeconds
+        
+        let seekCMTime = CMTime(seconds: seekSeconds, preferredTimescale: 1)
+        player.seek(to: seekCMTime)
+        self.currentTime = seekCMTime
+    }
+    
+    func slideToTime(_ playerControlview: PlayerControlView, _ sliderValue: Double) {
+        guard let player = playerView.player as? AVQueuePlayer,
+              let duration = player.currentItem?.duration else { return }
+        let durationSeconds = CMTimeGetSeconds(duration)
+        let seekTime = durationSeconds * sliderValue
+        let seekCMTime = CMTimeMake(value: Int64(ceil(seekTime)), timescale: 1)
+        player.seek(to: seekCMTime)
+        self.currentTime = seekCMTime
+    }
+    
+    func pauseToSeek(_ playerControlview: PlayerControlView) {
+        playerView.player?.pause()
+        playerView.playerState = .pause
+    }
+    
+    func sliderTouchEnded(_ playerControlview: PlayerControlView, _ sliderValue: Double) {
+        guard let player = playerView.player as? AVQueuePlayer,
+              let playerItem = player.currentItem else { return }
+        
+        if sliderValue == 1 {
+            currentTime = duration
+            playerControlview.togglePlayButtonImage(.play)
+            playerView.playerState = .ended
+            removePeriodicTimeObserver()
+            print("sliderValue 1")
+            
+        } else if playerItem.isPlaybackLikelyToKeepUp {
+            player.play()
+            playerView.playerState = .playing
+            playerControlview.togglePlayButtonImage(.pause)
+            
+        } else {
+            bufferingForSeconds(playerItem: playerItem, player: player)
+        }
+    }
+    
 }
 
 
