@@ -20,6 +20,9 @@
 		5660475E27843D6C0072FA66 /* Constant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5660475D27843D6C0072FA66 /* Constant.swift */; };
 		5660476027843DBC0072FA66 /* PlayerControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5660475F27843DBC0072FA66 /* PlayerControlView.swift */; };
 		566047622784483C0072FA66 /* BufferTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566047612784483C0072FA66 /* BufferTimer.swift */; };
+		566047642784832D0072FA66 /* CheckNetWorkProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566047632784832D0072FA66 /* CheckNetWorkProtocol.swift */; };
+		566047662784849E0072FA66 /* AlertProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566047652784849E0072FA66 /* AlertProtocol.swift */; };
+		56604769278484E40072FA66 /* UIViewController+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56604768278484E40072FA66 /* UIViewController+Extension.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +60,9 @@
 		5660475D27843D6C0072FA66 /* Constant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constant.swift; sourceTree = "<group>"; };
 		5660475F27843DBC0072FA66 /* PlayerControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerControlView.swift; sourceTree = "<group>"; };
 		566047612784483C0072FA66 /* BufferTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BufferTimer.swift; sourceTree = "<group>"; };
+		566047632784832D0072FA66 /* CheckNetWorkProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckNetWorkProtocol.swift; sourceTree = "<group>"; };
+		566047652784849E0072FA66 /* AlertProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertProtocol.swift; sourceTree = "<group>"; };
+		56604768278484E40072FA66 /* UIViewController+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIViewController+Extension.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,8 +113,9 @@
 		56604727278437D40072FA66 /* CatchPlayAVKit */ = {
 			isa = PBXGroup;
 			children = (
+				56604767278484C40072FA66 /* Extension */,
 				5660475C27843D590072FA66 /* Model */,
-				5660475927843CBD0072FA66 /* ViewController */,
+				5660475927843CBD0072FA66 /* Controller */,
 				5660475827843C910072FA66 /* View */,
 				56604728278437D40072FA66 /* AppDelegate.swift */,
 				5660472A278437D40072FA66 /* SceneDelegate.swift */,
@@ -146,12 +153,12 @@
 			path = View;
 			sourceTree = "<group>";
 		};
-		5660475927843CBD0072FA66 /* ViewController */ = {
+		5660475927843CBD0072FA66 /* Controller */ = {
 			isa = PBXGroup;
 			children = (
 				5660472C278437D40072FA66 /* CustomPlayerViewController.swift */,
 			);
-			path = ViewController;
+			path = Controller;
 			sourceTree = "<group>";
 		};
 		5660475C27843D590072FA66 /* Model */ = {
@@ -159,8 +166,18 @@
 			children = (
 				5660475D27843D6C0072FA66 /* Constant.swift */,
 				566047612784483C0072FA66 /* BufferTimer.swift */,
+				566047632784832D0072FA66 /* CheckNetWorkProtocol.swift */,
+				566047652784849E0072FA66 /* AlertProtocol.swift */,
 			);
 			path = Model;
+			sourceTree = "<group>";
+		};
+		56604767278484C40072FA66 /* Extension */ = {
+			isa = PBXGroup;
+			children = (
+				56604768278484E40072FA66 /* UIViewController+Extension.swift */,
+			);
+			path = Extension;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -300,7 +317,10 @@
 				5660472B278437D40072FA66 /* SceneDelegate.swift in Sources */,
 				5660475B27843D060072FA66 /* PlayerView.swift in Sources */,
 				566047622784483C0072FA66 /* BufferTimer.swift in Sources */,
+				566047662784849E0072FA66 /* AlertProtocol.swift in Sources */,
 				5660476027843DBC0072FA66 /* PlayerControlView.swift in Sources */,
+				56604769278484E40072FA66 /* UIViewController+Extension.swift in Sources */,
+				566047642784832D0072FA66 /* CheckNetWorkProtocol.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

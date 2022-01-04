@@ -27,6 +27,7 @@ struct Constant {
     static let forwardEnd = "forward.end"
     static let airplayvideo = "airplayvideo"
     static let speakerWave3 = "speaker.wave.3"
+    static let ok = "OK"
     
     static let loading = "loading..."
     static let speed = "Speed"
@@ -43,14 +44,4 @@ struct Constant {
 
 }
 
-protocol ReuseID {}
-protocol StoryboardID: ReuseID {}
-
-extension ReuseID {
-    static var reuseIdentifier: String {
-            String(describing: self)
-    }
-}
-
-extension UIViewController: StoryboardID {}
 

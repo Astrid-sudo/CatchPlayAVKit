@@ -31,7 +31,11 @@ class CustomPlayerViewController: UIViewController {
         return playerControlView
     }()
     
+    var noNetworkAlert: UIAlertController?
+    
     // MARK: - properties
+    
+    lazy var networkManager = NetworkManager()
     
     private var isPlaybackBufferEmptyObserver: NSKeyValueObservation?
     
@@ -81,6 +85,7 @@ class CustomPlayerViewController: UIViewController {
         setPlayerView()
         setPlayerControlView()
         setPlayContent()
+        checkNetwork(connectionHandler: connectionHandler, noConnectionHandler: noConnectionHandler)
     }
     
     // MARK: - UI method
@@ -89,10 +94,10 @@ class CustomPlayerViewController: UIViewController {
         view.addSubview(playerView)
         playerView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            playerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            playerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            playerView.topAnchor.constraint(equalTo: view.topAnchor),
-            playerView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            playerView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            playerView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            playerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            playerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
     }
     
@@ -100,10 +105,10 @@ class CustomPlayerViewController: UIViewController {
         view.addSubview(playerControlView)
         playerControlView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            playerControlView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            playerControlView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            playerControlView.topAnchor.constraint(equalTo: view.topAnchor),
-            playerControlView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            playerControlView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            playerControlView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            playerControlView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            playerControlView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
     }
     
@@ -120,11 +125,20 @@ class CustomPlayerViewController: UIViewController {
               let secondItem = createAVPlayerItem(Constant.sourceTwo) else { return }
         playerView.player = AVQueuePlayer(items: [firstItem, secondItem])
         observePlayerItemStatus(currentPlayerItem: firstItem)
+        observeBuffering(currentPlayerItem: firstItem)
         observeFirstItemEnd()
     }
     
+    private func observeItemPlayEnd(previousPlayerItem: AVPlayerItem? = nil, currentPlayerItem: AVPlayerItem) {
+        if let lastPlayerItem = previousPlayerItem {
+            NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: lastPlayerItem)
+        }
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(didPlaybackEnd), name: .AVPlayerItemDidPlayToEndTime, object: currentPlayerItem)
+    }
+    
     /// Access AVPlayerItem duration once AVPlayerItem is loaded
-    private func observePlayerItemStatus(lastPlayerItem: AVPlayerItem? = nil, currentPlayerItem: AVPlayerItem) {
+    private func observePlayerItemStatus(previousPlayerItem: AVPlayerItem? = nil, currentPlayerItem: AVPlayerItem) {
         statusObserve = currentPlayerItem.observe(\.status, options: [.new]) { [weak self] _, _ in
             guard let self = self else { return }
             self.duration = currentPlayerItem.duration
@@ -161,11 +175,11 @@ class CustomPlayerViewController: UIViewController {
     
     // MARK: - playerItem method
     
-    private func observeBuffering(for playerItem: AVPlayerItem?) {
-        guard let playerItem = playerItem else { return }
-        isPlaybackBufferEmptyObserver = playerItem.observe(\.isPlaybackBufferEmpty, changeHandler: onIsPlaybackBufferEmptyObserverChanged)
-        isPlaybackBufferFullObserver = playerItem.observe(\.isPlaybackBufferFull, changeHandler: onIsPlaybackBufferFullObserverChanged)
-        isPlaybackLikelyToKeepUpObserver = playerItem.observe(\.isPlaybackLikelyToKeepUp, changeHandler: onIsPlaybackLikelyToKeepUpObserverChanged)
+    private func observeBuffering(previousPlayerItem: AVPlayerItem? = nil, currentPlayerItem: AVPlayerItem?) {
+        guard let currentPlayerItem = currentPlayerItem else { return }
+        isPlaybackBufferEmptyObserver = currentPlayerItem.observe(\.isPlaybackBufferEmpty, changeHandler: onIsPlaybackBufferEmptyObserverChanged)
+        isPlaybackBufferFullObserver = currentPlayerItem.observe(\.isPlaybackBufferFull, changeHandler: onIsPlaybackBufferFullObserverChanged)
+        isPlaybackLikelyToKeepUpObserver = currentPlayerItem.observe(\.isPlaybackLikelyToKeepUp, changeHandler: onIsPlaybackLikelyToKeepUpObserverChanged)
     }
     
     private func onIsPlaybackBufferEmptyObserverChanged(playerItem: AVPlayerItem, change: NSKeyValueObservedChange<Bool>) {
@@ -193,12 +207,17 @@ class CustomPlayerViewController: UIViewController {
             let items = player.items()
             if items.indices.contains(1) {
                 let secondItem = items[1]
-                self.observeBuffering(for: secondItem)
-                self.observePlayerItemStatus(lastPlayerItem: items[0], currentPlayerItem: secondItem)
+                self.observeBuffering(previousPlayerItem: items[0], currentPlayerItem: secondItem)
+                self.observePlayerItemStatus(previousPlayerItem: items[0], currentPlayerItem: secondItem)
+                self.observeItemPlayEnd(previousPlayerItem: items[0], currentPlayerItem: secondItem)
                 self.duration = secondItem.duration
                 print("firstEnd\(secondItem.duration)")
             }
         }
+    }
+    
+    @objc func didPlaybackEnd() {
+        print("Play back end")
     }
     
     // MARK: - update UI method
@@ -233,7 +252,6 @@ class CustomPlayerViewController: UIViewController {
 extension CustomPlayerViewController: CustomPlayerControlDelegate {
     
     func togglePlay(_ playerControlview: PlayerControlView) {
-        observeBuffering(for:playerView.player?.currentItem)
         
         switch playerView.playerState {
             
@@ -340,9 +358,43 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
             playerView.player?.pause()
             playerView.playerState = .pause
         }
-
     }
     
+    func proceedNextPlayerItem(_ playerControlview: PlayerControlView) {
+        guard let player = playerView.player as? AVQueuePlayer,
+              let currentItem = player.currentItem,
+              let theLastItem = player.items().last else { return }
+        
+        if currentItem == theLastItem {
+            player.seek(to: .zero)
+        } else {
+            player.advanceToNextItem()
+            observeBuffering(previousPlayerItem: currentItem, currentPlayerItem: theLastItem)
+            observePlayerItemStatus(currentPlayerItem: theLastItem)
+            observeItemPlayEnd(previousPlayerItem: currentItem, currentPlayerItem: theLastItem)
+        }
+    }
+    
+}
+
+// MARK: - CheckNetWorkProtocol
+
+extension CustomPlayerViewController: CheckNetWorkProtocol {
+    
+    private func connectionHandler() {
+        DispatchQueue.main.async {
+            if let noNetworkAlert = self.noNetworkAlert {
+                self.dismissAlert(noNetworkAlert, completion: nil)
+            }
+        }
+    }
+    
+    private func noConnectionHandler() {
+        DispatchQueue.main.async {
+            self.noNetworkAlert = self.popAlert(title: Constant.networkAlertTitle, message: Constant.networkAlertMessage)
+        }
+    }
+
 }
 
 

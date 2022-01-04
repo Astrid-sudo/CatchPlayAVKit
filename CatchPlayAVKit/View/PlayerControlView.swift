@@ -33,16 +33,29 @@ protocol CustomPlayerControlDelegate: AnyObject {
     func sliderTouchEnded(_ playerControlview: PlayerControlView,_ sliderValue: Double)
     func jumpToTime(_ playerControlview: PlayerControlView, _ jumpTimeType: JumpTimeType)
     func adjustSpeed(_ playerControlview: PlayerControlView, _ playSpeedRate: Float)
+    func proceedNextPlayerItem(_ playerControlview: PlayerControlView)
 }
 
 class PlayerControlView: UIView {
     
     var screenWidth: CGFloat {
-        return UIScreen.main.bounds.width
+        if let window = window {
+            let leftPadding = window.safeAreaInsets.left
+            let rightPadding = window.safeAreaInsets.right
+            return UIScreen.main.bounds.width - leftPadding - rightPadding
+        } else {
+            return UIScreen.main.bounds.width
+        }
     }
     
     var screenHeight: CGFloat {
-        return UIScreen.main.bounds.height
+        if let window = window {
+            let topPadding = window.safeAreaInsets.top
+            let bottomPadding = window.safeAreaInsets.bottom
+            return UIScreen.main.bounds.height - topPadding - bottomPadding
+        } else {
+            return UIScreen.main.bounds.height
+        }
     }
     
     init() {
@@ -333,7 +346,7 @@ class PlayerControlView: UIView {
     }
     
     @objc func goNextEpisode() {
-        
+        delegate?.proceedNextPlayerItem(self)
     }
     
     @objc func pressAirPlay() {
