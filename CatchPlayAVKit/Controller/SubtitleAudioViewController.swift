@@ -102,8 +102,8 @@ class SubtitleAudioViewController: UIViewController {
         view.addSubview(dismissButtonButton)
         dismissButtonButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            dismissButtonButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
-            dismissButtonButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16)
+            dismissButtonButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            dismissButtonButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 16)
         ])
     }
     

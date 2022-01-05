@@ -76,14 +76,14 @@ class PlayerControlView: UIView {
     
     // MARK: - UI properties
     
-    private var backgroundDimView: UIView = {
+    private lazy var backgroundDimView: UIView = {
         let view = UIView()
         view.backgroundColor = .black
         view.alpha = 0.65
         return view
     }()
     
-    private var episodeTitleLabel: UILabel = {
+    private lazy var episodeTitleLabel: UILabel = {
         let label = UILabel()
         label.text = Constant.loading
         label.textColor = .white
@@ -91,21 +91,21 @@ class PlayerControlView: UIView {
         return label
     }()
     
-    private var brightnessIcon: UIImageView = {
+    private lazy var brightnessIcon: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(systemName: Constant.sunMax)
         imageView.tintColor = .white
         return imageView
     }()
     
-    private var volumeIcon: UIImageView = {
+    private lazy var volumeIcon: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(systemName: Constant.speakerWave3)
         imageView.tintColor = .white
         return imageView
     }()
     
-    private var brightnessSlider: UISlider = {
+    private lazy var brightnessSlider: UISlider = {
         let slider = UISlider()
         slider.thumbTintColor = .clear
         slider.maximumTrackTintColor = .gray
@@ -119,7 +119,7 @@ class PlayerControlView: UIView {
         return slider
     }()
     
-    private var volumeSlider: UISlider = {
+    private lazy var volumeSlider: UISlider = {
         let slider = UISlider()
         slider.thumbTintColor = .clear
         slider.maximumTrackTintColor = .gray
@@ -133,7 +133,7 @@ class PlayerControlView: UIView {
         return slider
     }()
     
-    private var playButton: UIButton = {
+    private lazy var playButton: UIButton = {
         let button = UIButton()
         let config = UIImage.SymbolConfiguration(pointSize: 32)
         let bigImage = UIImage(systemName: Constant.play, withConfiguration: config)
@@ -143,7 +143,7 @@ class PlayerControlView: UIView {
         return button
     }()
     
-    private var goForwardButton: UIButton = {
+    private lazy var goForwardButton: UIButton = {
         let button = UIButton()
         let config = UIImage.SymbolConfiguration(pointSize: 32)
         let bigImage = UIImage(systemName: Constant.goforward, withConfiguration: config)
@@ -153,7 +153,7 @@ class PlayerControlView: UIView {
         return button
     }()
     
-    private var goBackwardButton: UIButton = {
+    private lazy var goBackwardButton: UIButton = {
         let button = UIButton()
         let config = UIImage.SymbolConfiguration(pointSize: 32)
         let bigImage = UIImage(systemName: Constant.gobackward, withConfiguration: config)
@@ -163,7 +163,7 @@ class PlayerControlView: UIView {
         return button
     }()
     
-    private var progressSlider: UISlider = {
+    private lazy var progressSlider: UISlider = {
         let slider = UISlider()
         slider.maximumTrackTintColor = .gray
         slider.minimumTrackTintColor = .orange
@@ -178,7 +178,7 @@ class PlayerControlView: UIView {
         return slider
     }()
     
-    private var durationLabel: UILabel = {
+    private lazy var durationLabel: UILabel = {
         let label = UILabel()
         label.text = "00:00"
         label.font = .monospacedDigitSystemFont(ofSize: 14, weight: .regular)
@@ -189,7 +189,7 @@ class PlayerControlView: UIView {
         return label
     }()
     
-    private var currentTimeLabel: UILabel = {
+    private lazy var currentTimeLabel: UILabel = {
         let label = UILabel()
         label.text = "00:00 /"
         label.font = .monospacedDigitSystemFont(ofSize: 14, weight: .regular)
@@ -200,7 +200,7 @@ class PlayerControlView: UIView {
         return label
     }()
     
-    private var slowSpeedButton: UIButton = {
+    private lazy var slowSpeedButton: UIButton = {
         let speedImage = UIImage(systemName: Constant.speedometer)
         let button = UIButton()
         button.setImage(speedImage, for: .normal)
@@ -213,7 +213,7 @@ class PlayerControlView: UIView {
         return button
     }()
     
-    private var normalSpeedButton: UIButton = {
+    private lazy var normalSpeedButton: UIButton = {
         let speedImage = UIImage(systemName: Constant.speedometer)
         let button = UIButton()
         button.setImage(speedImage, for: .normal)
@@ -226,7 +226,7 @@ class PlayerControlView: UIView {
         return button
     }()
     
-    private var fastSpeedButton: UIButton = {
+    private lazy var fastSpeedButton: UIButton = {
         let speedImage = UIImage(systemName: Constant.speedometer)
         let button = UIButton()
         button.setImage(speedImage, for: .normal)
@@ -240,7 +240,7 @@ class PlayerControlView: UIView {
     
     private lazy var speedButtons = [slowSpeedButton, normalSpeedButton, fastSpeedButton]
     
-    private var lockButton: UIButton = {
+    private lazy var lockButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(systemName: Constant.lockOpen), for: .normal)
         button.setTitle(Constant.lock, for: .normal)
@@ -251,7 +251,7 @@ class PlayerControlView: UIView {
         return button
     }()
     
-    private var audioSubtitleButton: UIButton = {
+    private lazy var audioSubtitleButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(systemName: Constant.textBubble), for: .normal)
         button.setTitle(Constant.subtitleAndAudio, for: .normal)
@@ -263,7 +263,7 @@ class PlayerControlView: UIView {
         return button
     }()
     
-    private var nextEpisodeButton: UIButton = {
+    private lazy var nextEpisodeButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(systemName: Constant.forwardEnd), for: .normal)
         button.setTitle(Constant.nextEpisode, for: .normal)

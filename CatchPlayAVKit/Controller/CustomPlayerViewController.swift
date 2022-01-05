@@ -105,14 +105,18 @@ class CustomPlayerViewController: UIViewController {
     
     // MARK: - UI method
     
+    private func setBackgroundcolor() {
+        view.backgroundColor = .black
+    }
+    
     private func setPlayerView() {
         view.addSubview(playerView)
         playerView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            playerView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
-            playerView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-            playerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            playerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+            playerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            playerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            playerView.topAnchor.constraint(equalTo: view.topAnchor),
+            playerView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
     
@@ -120,10 +124,10 @@ class CustomPlayerViewController: UIViewController {
         view.addSubview(playerControlView)
         playerControlView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            playerControlView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
-            playerControlView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-            playerControlView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            playerControlView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+            playerControlView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            playerControlView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            playerControlView.topAnchor.constraint(equalTo: view.topAnchor),
+            playerControlView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
     
@@ -372,11 +376,7 @@ class CustomPlayerViewController: UIViewController {
         UIView.animate(withDuration: 0.3, delay: delay, options: .curveEaseOut) {
             self.screenLockedView.uiPropertiesAlpha(1)
         }
-        
-        UIView.animate(withDuration: 0.3, delay: delay + seconds, options: .curveEaseOut) {
-            self.screenLockedView.uiPropertiesAlpha(0)
-        }
-        
+                
         Timer.scheduledTimer(withTimeInterval: delay + seconds + 0.6, repeats: false) {[weak self] _ in
             guard let self = self else { return }
             self.screenLockedView.uiPropertiesIsHidden(isHidden: true)

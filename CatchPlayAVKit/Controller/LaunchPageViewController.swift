@@ -29,9 +29,9 @@ class LaunchPageViewController: UIViewController {
     
     // MARK: - UI method
 
-    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        return .portrait
-    }
+//    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+//        return .portrait
+//    }
 
     private func setViewBackgroundcolor() {
         view.backgroundColor = .black

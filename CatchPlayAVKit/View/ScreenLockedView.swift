@@ -88,7 +88,7 @@ class ScreenLockedView: UIView {
     // MARK: - method for customPlayerViewController
     
     func uiPropertiesAlpha(_ alpha: CGFloat ) {
-        stackView.alpha = alpha
+//        stackView.alpha = alpha
     }
     
     func uiPropertiesIsHidden(isHidden: Bool) {
@@ -98,7 +98,6 @@ class ScreenLockedView: UIView {
     // MARK: - UI method
     
     private func setStackView() {
-        stackView.alpha = 0
         addSubview(stackView)
         stackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
