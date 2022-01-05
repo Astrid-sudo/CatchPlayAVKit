@@ -7,6 +7,11 @@
 
 import UIKit
 
+protocol SubtitleAudioSelectDelegate: AnyObject {
+    func selectSubtitle(_ subtitleAudioViewController: SubtitleAudioViewController, index: Int)
+    func selectAudio(_ subtitleAudioViewController: SubtitleAudioViewController, index: Int)
+}
+
 class SubtitleAudioViewController: UIViewController {
     
     // MARK: - properties
@@ -31,6 +36,11 @@ class SubtitleAudioViewController: UIViewController {
     var screenWidth: CGFloat {
         return UIScreen.main.bounds.width
     }
+    
+    private var selectedAudioIndex: Int?
+    private var selectedSubtitleIndex: Int?
+    
+    weak var delegate: SubtitleAudioSelectDelegate?
 
     // MARK: - UI properties
     
@@ -74,7 +84,6 @@ class SubtitleAudioViewController: UIViewController {
         stackView.distribution = .fillEqually
         return stackView
     }()
-    
     
     // MARK: - life cycle
     
@@ -131,8 +140,8 @@ class SubtitleAudioViewController: UIViewController {
     
     private func parseMediaOption() {
         guard let mediaOption = mediaOption else { return }
-        audioOptions = mediaOption.aVMediaCharacteristicAudible
-        subtitleOptions = mediaOption.AVMediaCharacteristicLegible
+        audioOptions = mediaOption.aVMediaCharacteristicAudible.map({$0.displayName})
+        subtitleOptions = mediaOption.aVMediaCharacteristicLegible.map({$0.displayName})
     }
     
     @objc func dismissSubtitleAudioViewController() {
@@ -158,16 +167,25 @@ extension SubtitleAudioViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
         let cell = tableView.dequeueReusableCell(withIdentifier: UITableViewCell.reuseIdentifier, for: indexPath)
+        cell.textLabel?.textColor = .white
+        cell.selectionStyle = .none
         
         if tableView == audioTableView,
            let audioOptions = audioOptions {
             cell.textLabel?.text = audioOptions[indexPath.row]
+            if indexPath.row == selectedAudioIndex {
+                cell.textLabel?.textColor = .orange
+            }
         }
         
         if tableView == subtitleTableView,
            let subtitleOptions = subtitleOptions {
             cell.textLabel?.text = subtitleOptions[indexPath.row]
+            if indexPath.row == selectedSubtitleIndex {
+                cell.textLabel?.textColor = .orange
+            }
         }
         
         return cell
@@ -189,6 +207,20 @@ extension SubtitleAudioViewController: UITableViewDataSource {
 // MARK: - UITableViewDelegate
 
 extension SubtitleAudioViewController: UITableViewDelegate {
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if tableView == audioTableView {
+            selectedAudioIndex = indexPath.row
+            delegate?.selectAudio(self, index: indexPath.row)
+            audioTableView.reloadData()
+        }
+        
+        if tableView == subtitleTableView {
+            selectedSubtitleIndex = indexPath.row
+            delegate?.selectSubtitle(self, index: indexPath.row)
+            subtitleTableView.reloadData()
+        }
+    }
     
 }
 

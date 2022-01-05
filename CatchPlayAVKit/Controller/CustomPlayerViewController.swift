@@ -138,15 +138,16 @@ class CustomPlayerViewController: UIViewController {
     /// Access and gather availableMediaCharacteristicsWithMediaSelectionOptions, store in local variable.
     private func getMediaSelectionOptions(currentPlayerItem: AVPlayerItem) {
         
-        var audibleOption = [String]()
-        var legibleOption = [String]()
-
+        var audibleOption = [DisplayNameLocale]()
+        var legibleOption = [DisplayNameLocale]()
         for characteristic in currentPlayerItem.asset.availableMediaCharacteristicsWithMediaSelectionOptions {
             
             if characteristic == .audible {
                 if let group = currentPlayerItem.asset.mediaSelectionGroup(forMediaCharacteristic: characteristic) {
                     for option in group.options {
-                        audibleOption.append(option.displayName)
+                        let displayNameLocale = DisplayNameLocale(displayName: option.displayName,
+                                                                  locale: option.locale)
+                        audibleOption.append(displayNameLocale)
                     }
                 }
             }
@@ -154,13 +155,15 @@ class CustomPlayerViewController: UIViewController {
             if characteristic == .legible {
                 if let group = currentPlayerItem.asset.mediaSelectionGroup(forMediaCharacteristic: characteristic) {
                     for option in group.options {
-                        legibleOption.append(option.displayName)
+                        let displayNameLocale = DisplayNameLocale(displayName: option.displayName,
+                                                                  locale: option.locale)
+                        legibleOption.append(displayNameLocale)
                     }
                 }
             }
         }
         
-        mediaOption = MediaOption(aVMediaCharacteristicAudible: audibleOption, AVMediaCharacteristicLegible: legibleOption)
+        mediaOption = MediaOption(aVMediaCharacteristicAudible: audibleOption, aVMediaCharacteristicLegible: legibleOption)
     }
     
     /// Set a timer to check if AVPlayerItem.isPlaybackLikelyToKeepUp
@@ -190,7 +193,6 @@ class CustomPlayerViewController: UIViewController {
         })
         
         bufferTimer?.start()
-        
     }
     
     // MARK: - playerItem method
@@ -262,6 +264,36 @@ class CustomPlayerViewController: UIViewController {
         print("Play back end")
     }
     
+    /// Set selected audio track to current player item.
+    private func playerItemSelectAudio(index: Int) {
+        guard let player = playerView.player as? AVQueuePlayer,
+              let currentItem = player.currentItem,
+              let mediaOption = mediaOption,
+              let group = currentItem.asset.mediaSelectionGroup(forMediaCharacteristic: AVMediaCharacteristic.audible),
+              let locale = mediaOption.aVMediaCharacteristicAudible[index].locale
+        else { return }
+        let options =
+        AVMediaSelectionGroup.mediaSelectionOptions(from: group.options, with: locale)
+        if let option = options.first {
+            currentItem.select(option, in: group)
+        }
+    }
+    
+    /// Set selected subtitle to current player item.
+    private func playerItemSelectSubtitle(index: Int) {
+        guard let player = playerView.player as? AVQueuePlayer,
+              let currentItem = player.currentItem,
+              let mediaOption = mediaOption,
+              let group = currentItem.asset.mediaSelectionGroup(forMediaCharacteristic: AVMediaCharacteristic.legible),
+              let locale = mediaOption.aVMediaCharacteristicLegible[index].locale
+        else { return }
+        let options =
+        AVMediaSelectionGroup.mediaSelectionOptions(from: group.options, with: locale)
+        if let option = options.first {
+            currentItem.select(option, in: group)
+        }
+    }
+
     // MARK: - update UI method
     
     private func addPeriodicTimeObserver() {
@@ -454,7 +486,6 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
     
     func adjustSpeed(_ playerControlview: PlayerControlView, _ playSpeedRate: Float) {
         playerView.player?.currentItem?.audioTimePitchAlgorithm = .spectral
-
         if playerView.playerState == .playing {
             playerView.player?.pause()
             playerView.player?.play()
@@ -500,6 +531,7 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         guard let subtitleAudioViewController = storyboard.instantiateViewController(withIdentifier: SubtitleAudioViewController.reuseIdentifier) as? SubtitleAudioViewController else { return }
         subtitleAudioViewController.mediaOption = mediaOption
+        subtitleAudioViewController.delegate = self
         present(subtitleAudioViewController, animated: true, completion: nil)
     }
 
@@ -551,6 +583,20 @@ extension CustomPlayerViewController: ScreenLockedViewDelegate {
         print("Unlock Screen screenLockedView")
         removeScreenLockedView()
         showPlayerControl()
+    }
+    
+}
+
+// MARK: - SubtitleAudioSelectDelegate
+
+extension CustomPlayerViewController: SubtitleAudioSelectDelegate {
+    
+    func selectSubtitle(_ subtitleAudioViewController: SubtitleAudioViewController, index: Int) {
+        playerItemSelectSubtitle(index: index)
+    }
+    
+    func selectAudio(_ subtitleAudioViewController: SubtitleAudioViewController, index: Int) {
+        playerItemSelectAudio(index: index)
     }
     
 }

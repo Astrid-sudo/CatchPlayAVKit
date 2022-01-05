@@ -8,6 +8,11 @@
 import Foundation
 
 struct MediaOption {
-    var aVMediaCharacteristicAudible: [String]
-    var AVMediaCharacteristicLegible: [String]
+    var aVMediaCharacteristicAudible: [DisplayNameLocale]
+    var aVMediaCharacteristicLegible: [DisplayNameLocale]
+}
+
+struct DisplayNameLocale {
+    var displayName: String
+    var locale: Locale?
 }
