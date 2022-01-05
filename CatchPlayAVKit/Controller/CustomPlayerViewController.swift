@@ -22,13 +22,21 @@ class CustomPlayerViewController: UIViewController {
     // MARK: - UI properties
     
     private lazy var playerView: PlayerView = {
-        return PlayerView()
+        let playerView = PlayerView()
+        playerView.delegate = self
+        return playerView
     }()
     
     private lazy var playerControlView: PlayerControlView = {
         let playerControlView = PlayerControlView()
         playerControlView.delegate = self
         return playerControlView
+    }()
+    
+    private lazy var screenLockedView: ScreenLockedView = {
+        let screenLockedView = ScreenLockedView()
+        screenLockedView.delegate = self
+        return screenLockedView
     }()
     
     var noNetworkAlert: UIAlertController?
@@ -52,6 +60,8 @@ class CustomPlayerViewController: UIViewController {
     private var timeObserverToken: Any?
     
     private var bufferTimer: BufferTimer?
+    
+    private var autoHideTimer: BufferTimer?
     
     var currentTime: CMTime = .zero {
         didSet {
@@ -154,6 +164,7 @@ class CustomPlayerViewController: UIViewController {
         player.pause()
         playerView.playerState = .pause
         bufferTimer?.cancel()
+        cancelAutoHidePlayerControl()
         
         playerView.playerState = .buffering
         playerControlView.togglePlayButtonImage(.indicatorView)
@@ -162,6 +173,7 @@ class CustomPlayerViewController: UIViewController {
             if playerItem.isPlaybackLikelyToKeepUp {
                 player.play()
                 player.rate = self.playSpeedRate
+                self.autoHidePlayerControl()
                 self.playerView.playerState = .playing
                 self.playerControlView.togglePlayButtonImage(.pause)
             } else {
@@ -245,12 +257,72 @@ class CustomPlayerViewController: UIViewController {
         }
     }
     
+    private func hidePlayerControl(animateDuration: TimeInterval = 0.4) {
+            UIView.animate(withDuration: animateDuration, delay: 0, options: .curveEaseIn) {
+                self.playerControlView.alpha = 0
+            }
+            Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { _ in
+                self.playerControlView.isHidden = true
+            }
+    }
+    
+    private func showPlayerControl(animateDuration: TimeInterval = 0.4) {
+        self.playerControlView.isHidden = false
+        UIView.animate(withDuration: animateDuration, delay: 0, options: .curveEaseOut) {
+            self.playerControlView.alpha = 1
+        }
+    }
+    
+    private func autoHidePlayerControl() {
+        autoHideTimer?.cancel()
+        autoHideTimer = BufferTimer(interval: 0, delaySecs: 3, repeats: false, action: { [weak self] _ in
+            guard let self = self else { return }
+            self.hidePlayerControl()
+        })
+        autoHideTimer?.start()
+    }
+    
+    private func cancelAutoHidePlayerControl() {
+        autoHideTimer?.cancel()
+    }
+    
+    private func addScreenLockedView() {
+        view.addSubview(screenLockedView)
+        screenLockedView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            screenLockedView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            screenLockedView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            screenLockedView.topAnchor.constraint(equalTo: view.topAnchor),
+            screenLockedView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+    }
+    
+    private func removeScreenLockedView() {
+        screenLockedView.removeFromSuperview()
+    }
+    
+    private func showScreenLockedPanel(delay: TimeInterval = 0, for seconds: TimeInterval = 3) {
+        screenLockedView.uiPropertiesIsHidden(isHidden: false)
+        UIView.animate(withDuration: 0.3, delay: delay, options: .curveEaseOut) {
+            self.screenLockedView.uiPropertiesAlpha(1)
+        }
+        
+        UIView.animate(withDuration: 0.3, delay: delay + seconds, options: .curveEaseOut) {
+            self.screenLockedView.uiPropertiesAlpha(0)
+        }
+        
+        Timer.scheduledTimer(withTimeInterval: delay + seconds + 0.6, repeats: false) {[weak self] _ in
+            guard let self = self else { return }
+            self.screenLockedView.uiPropertiesIsHidden(isHidden: true)
+        }
+    }
+    
 }
 
 // MARK: - CustomPlayerControlDelegate
 
 extension CustomPlayerViewController: CustomPlayerControlDelegate {
-    
+
     func togglePlay(_ playerControlview: PlayerControlView) {
         
         switch playerView.playerState {
@@ -258,12 +330,14 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
         case .buffering:
             playerView.player?.play()
             playerView.player?.rate = playSpeedRate
+            autoHidePlayerControl()
             playerControlview.togglePlayButtonImage(.indicatorView)
             print("buffering")
             
         case .unknow, .pause, .readyToPlay:
             playerView.player?.play()
             playerView.player?.rate = playSpeedRate
+            autoHidePlayerControl()
             playerView.playerState = .playing
             
             playerControlview.togglePlayButtonImage(.pause)
@@ -273,6 +347,8 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
         case .playing:
             playerView.player?.pause()
             playerView.playerState = .pause
+            cancelAutoHidePlayerControl()
+
             
             playerControlview.togglePlayButtonImage(.play)
             removePeriodicTimeObserver()
@@ -320,6 +396,7 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
     func pauseToSeek(_ playerControlview: PlayerControlView) {
         playerView.player?.pause()
         playerView.playerState = .pause
+        cancelAutoHidePlayerControl()
     }
     
     func sliderTouchEnded(_ playerControlview: PlayerControlView, _ sliderValue: Double) {
@@ -336,6 +413,7 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
         } else if playerItem.isPlaybackLikelyToKeepUp {
             player.play()
             playerView.player?.rate = playSpeedRate
+            autoHidePlayerControl()
             playerView.playerState = .playing
             playerControlview.togglePlayButtonImage(.pause)
             
@@ -352,11 +430,13 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
             playerView.player?.play()
             self.playSpeedRate = playSpeedRate
             playerView.player?.rate = playSpeedRate
+            autoHidePlayerControl()
         } else {
             self.playSpeedRate = playSpeedRate
             playerView.player?.rate = playSpeedRate
             playerView.player?.pause()
             playerView.playerState = .pause
+            cancelAutoHidePlayerControl()
         }
     }
     
@@ -375,6 +455,17 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
         }
     }
     
+    /// Hide player control when user tap playerControlView.
+    func handleTapGesture(_ playerControlview: PlayerControlView) {
+        hidePlayerControl()
+    }
+    
+    func lockScreen(_ playerControlview: PlayerControlView) {
+        hidePlayerControl(animateDuration: 0.2)
+        addScreenLockedView()
+        showScreenLockedPanel()
+    }
+
 }
 
 // MARK: - CheckNetWorkProtocol
@@ -395,6 +486,36 @@ extension CustomPlayerViewController: CheckNetWorkProtocol {
         }
     }
 
+}
+
+// MARK: - PlayerViewDelegate
+
+extension CustomPlayerViewController: PlayerViewDelegate {
+    
+    /// Show player control when user tap playerView.
+    func handleTapGesture(from playerView: PlayerView) {
+        showPlayerControl()
+        autoHidePlayerControl()
+    }
+    
+}
+
+// MARK: - ScreenLockedViewDelegate
+
+extension CustomPlayerViewController: ScreenLockedViewDelegate {
+    
+    /// Show screen lock panel when user tap screenLockedView.
+    func handleTapGesture(from screenLockedView: ScreenLockedView) {
+        print("Tap screenLockedView")
+        showScreenLockedPanel()
+    }
+    
+    func unlockScreen(from screenLockedView: ScreenLockedView) {
+        print("Unlock Screen screenLockedView")
+        removeScreenLockedView()
+        showPlayerControl()
+    }
+    
 }
 
 

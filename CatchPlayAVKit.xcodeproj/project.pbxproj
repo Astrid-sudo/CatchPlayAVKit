@@ -23,6 +23,7 @@
 		566047642784832D0072FA66 /* CheckNetWorkProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566047632784832D0072FA66 /* CheckNetWorkProtocol.swift */; };
 		566047662784849E0072FA66 /* AlertProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566047652784849E0072FA66 /* AlertProtocol.swift */; };
 		56604769278484E40072FA66 /* UIViewController+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56604768278484E40072FA66 /* UIViewController+Extension.swift */; };
+		56933F4F2785187C0087C67A /* ScreenLockedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56933F4E2785187C0087C67A /* ScreenLockedView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +64,7 @@
 		566047632784832D0072FA66 /* CheckNetWorkProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckNetWorkProtocol.swift; sourceTree = "<group>"; };
 		566047652784849E0072FA66 /* AlertProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertProtocol.swift; sourceTree = "<group>"; };
 		56604768278484E40072FA66 /* UIViewController+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIViewController+Extension.swift"; sourceTree = "<group>"; };
+		56933F4E2785187C0087C67A /* ScreenLockedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenLockedView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -149,6 +151,7 @@
 			children = (
 				5660475A27843D060072FA66 /* PlayerView.swift */,
 				5660475F27843DBC0072FA66 /* PlayerControlView.swift */,
+				56933F4E2785187C0087C67A /* ScreenLockedView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -317,6 +320,7 @@
 				5660472B278437D40072FA66 /* SceneDelegate.swift in Sources */,
 				5660475B27843D060072FA66 /* PlayerView.swift in Sources */,
 				566047622784483C0072FA66 /* BufferTimer.swift in Sources */,
+				56933F4F2785187C0087C67A /* ScreenLockedView.swift in Sources */,
 				566047662784849E0072FA66 /* AlertProtocol.swift in Sources */,
 				5660476027843DBC0072FA66 /* PlayerControlView.swift in Sources */,
 				56604769278484E40072FA66 /* UIViewController+Extension.swift in Sources */,

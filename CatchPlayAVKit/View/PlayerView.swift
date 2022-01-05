@@ -5,6 +5,10 @@
 //  Created by Astrid on 2022/1/4.
 //
 
+protocol PlayerViewDelegate: AnyObject {
+    func handleTapGesture(from playerView: PlayerView)
+}
+
 import AVKit
 
 /// A view that displays the visual contents of a player object.
@@ -19,9 +23,30 @@ class PlayerView: UIView {
         set { playerLayer.player = newValue }
     }
     
+    weak var delegate: PlayerViewDelegate?
+    
     var playerState: PlayerState = .unknow
     
     private var playerLayer: AVPlayerLayer { layer as! AVPlayerLayer }
     
+    private lazy var tapGesture: UITapGestureRecognizer = {
+        let gesture = UITapGestureRecognizer(target: self, action: #selector(tapAction))
+        return gesture
+    }()
+
+    init() {
+        super.init(frame: .zero)
+        isUserInteractionEnabled = true
+        addGestureRecognizer(tapGesture)
+    }
+    
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    @objc func tapAction() {
+        delegate?.handleTapGesture(from: self)
+    }
+
 }
 

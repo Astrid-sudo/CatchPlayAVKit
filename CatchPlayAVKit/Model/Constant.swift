@@ -27,6 +27,7 @@ struct Constant {
     static let forwardEnd = "forward.end"
     static let airplayvideo = "airplayvideo"
     static let speakerWave3 = "speaker.wave.3"
+    static let lockCircleFill = "lock.circle.fill"
     static let ok = "OK"
     
     static let loading = "loading..."
@@ -35,6 +36,8 @@ struct Constant {
     static let subtitleAndAudio = "Subtitle/Audio"
     static let nextEpisode = "Next Ep."
     static let airPlay = "AirPlay"
+    static let screenLocked = "Screen Locked"
+    static let tapLockerToUnlock = "Tap Locker To Unlock"
     
     static let font = "PingFang TC"
     
