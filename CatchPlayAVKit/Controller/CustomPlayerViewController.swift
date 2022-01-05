@@ -86,8 +86,9 @@ class CustomPlayerViewController: UIViewController {
             }
         }
     }
-
     
+    var mediaOption: MediaOption?
+
     // MARK: - life cycle
     
     override func viewDidLoad() {
@@ -124,11 +125,6 @@ class CustomPlayerViewController: UIViewController {
     
     // MARK: - player method
     
-    private func createAVPlayerItem(_ urlString: String) -> AVPlayerItem? {
-        guard let url = URL(string: urlString) else { return nil }
-        return AVPlayerItem(url: url)
-    }
-    
     /// Place AVPlayerItem in AVQueuePlayer, assign to AVPlayer
     private func setPlayContent() {
         guard let firstItem = createAVPlayerItem(Constant.sourceOne),
@@ -139,20 +135,32 @@ class CustomPlayerViewController: UIViewController {
         observeFirstItemEnd()
     }
     
-    private func observeItemPlayEnd(previousPlayerItem: AVPlayerItem? = nil, currentPlayerItem: AVPlayerItem) {
-        if let lastPlayerItem = previousPlayerItem {
-            NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: lastPlayerItem)
+    /// Access and gather availableMediaCharacteristicsWithMediaSelectionOptions, store in local variable.
+    private func getMediaSelectionOptions(currentPlayerItem: AVPlayerItem) {
+        
+        var audibleOption = [String]()
+        var legibleOption = [String]()
+
+        for characteristic in currentPlayerItem.asset.availableMediaCharacteristicsWithMediaSelectionOptions {
+            
+            if characteristic == .audible {
+                if let group = currentPlayerItem.asset.mediaSelectionGroup(forMediaCharacteristic: characteristic) {
+                    for option in group.options {
+                        audibleOption.append(option.displayName)
+                    }
+                }
+            }
+            
+            if characteristic == .legible {
+                if let group = currentPlayerItem.asset.mediaSelectionGroup(forMediaCharacteristic: characteristic) {
+                    for option in group.options {
+                        legibleOption.append(option.displayName)
+                    }
+                }
+            }
         }
         
-        NotificationCenter.default.addObserver(self, selector: #selector(didPlaybackEnd), name: .AVPlayerItemDidPlayToEndTime, object: currentPlayerItem)
-    }
-    
-    /// Access AVPlayerItem duration once AVPlayerItem is loaded
-    private func observePlayerItemStatus(previousPlayerItem: AVPlayerItem? = nil, currentPlayerItem: AVPlayerItem) {
-        statusObserve = currentPlayerItem.observe(\.status, options: [.new]) { [weak self] _, _ in
-            guard let self = self else { return }
-            self.duration = currentPlayerItem.duration
-        }
+        mediaOption = MediaOption(aVMediaCharacteristicAudible: audibleOption, AVMediaCharacteristicLegible: legibleOption)
     }
     
     /// Set a timer to check if AVPlayerItem.isPlaybackLikelyToKeepUp
@@ -187,6 +195,28 @@ class CustomPlayerViewController: UIViewController {
     
     // MARK: - playerItem method
     
+    private func createAVPlayerItem(_ urlString: String) -> AVPlayerItem? {
+        guard let url = URL(string: urlString) else { return nil }
+        return AVPlayerItem(url: url)
+    }
+    
+    private func observeItemPlayEnd(previousPlayerItem: AVPlayerItem? = nil, currentPlayerItem: AVPlayerItem) {
+        if let lastPlayerItem = previousPlayerItem {
+            NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: lastPlayerItem)
+        }
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(didPlaybackEnd), name: .AVPlayerItemDidPlayToEndTime, object: currentPlayerItem)
+    }
+    
+    /// Access AVPlayerItem duration once AVPlayerItem is loaded
+    private func observePlayerItemStatus(previousPlayerItem: AVPlayerItem? = nil, currentPlayerItem: AVPlayerItem) {
+        statusObserve = currentPlayerItem.observe(\.status, options: [.new]) { [weak self] _, _ in
+            guard let self = self else { return }
+            self.duration = currentPlayerItem.duration
+            self.getMediaSelectionOptions(currentPlayerItem: currentPlayerItem)
+        }
+    }
+
     private func observeBuffering(previousPlayerItem: AVPlayerItem? = nil, currentPlayerItem: AVPlayerItem?) {
         guard let currentPlayerItem = currentPlayerItem else { return }
         isPlaybackBufferEmptyObserver = currentPlayerItem.observe(\.isPlaybackBufferEmpty, changeHandler: onIsPlaybackBufferEmptyObserverChanged)
@@ -464,6 +494,13 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
         hidePlayerControl(animateDuration: 0.2)
         addScreenLockedView()
         showScreenLockedPanel()
+    }
+    
+    func showAudioSubtitleSelection(_ playerControlview: PlayerControlView) {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        guard let subtitleAudioViewController = storyboard.instantiateViewController(withIdentifier: SubtitleAudioViewController.reuseIdentifier) as? SubtitleAudioViewController else { return }
+        subtitleAudioViewController.mediaOption = mediaOption
+        present(subtitleAudioViewController, animated: true, completion: nil)
     }
 
 }

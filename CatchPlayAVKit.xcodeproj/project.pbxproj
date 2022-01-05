@@ -24,6 +24,9 @@
 		566047662784849E0072FA66 /* AlertProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566047652784849E0072FA66 /* AlertProtocol.swift */; };
 		56604769278484E40072FA66 /* UIViewController+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56604768278484E40072FA66 /* UIViewController+Extension.swift */; };
 		56933F4F2785187C0087C67A /* ScreenLockedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56933F4E2785187C0087C67A /* ScreenLockedView.swift */; };
+		56933F5127854A790087C67A /* MediaOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56933F5027854A790087C67A /* MediaOption.swift */; };
+		56933F53278551EF0087C67A /* SubtitleAudioViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56933F52278551EF0087C67A /* SubtitleAudioViewController.swift */; };
+		56933F552785535A0087C67A /* UITableViewCell+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56933F542785535A0087C67A /* UITableViewCell+Extension.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -65,6 +68,9 @@
 		566047652784849E0072FA66 /* AlertProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertProtocol.swift; sourceTree = "<group>"; };
 		56604768278484E40072FA66 /* UIViewController+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIViewController+Extension.swift"; sourceTree = "<group>"; };
 		56933F4E2785187C0087C67A /* ScreenLockedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenLockedView.swift; sourceTree = "<group>"; };
+		56933F5027854A790087C67A /* MediaOption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaOption.swift; sourceTree = "<group>"; };
+		56933F52278551EF0087C67A /* SubtitleAudioViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleAudioViewController.swift; sourceTree = "<group>"; };
+		56933F542785535A0087C67A /* UITableViewCell+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UITableViewCell+Extension.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -160,6 +166,7 @@
 			isa = PBXGroup;
 			children = (
 				5660472C278437D40072FA66 /* CustomPlayerViewController.swift */,
+				56933F52278551EF0087C67A /* SubtitleAudioViewController.swift */,
 			);
 			path = Controller;
 			sourceTree = "<group>";
@@ -171,6 +178,7 @@
 				566047612784483C0072FA66 /* BufferTimer.swift */,
 				566047632784832D0072FA66 /* CheckNetWorkProtocol.swift */,
 				566047652784849E0072FA66 /* AlertProtocol.swift */,
+				56933F5027854A790087C67A /* MediaOption.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -179,6 +187,7 @@
 			isa = PBXGroup;
 			children = (
 				56604768278484E40072FA66 /* UIViewController+Extension.swift */,
+				56933F542785535A0087C67A /* UITableViewCell+Extension.swift */,
 			);
 			path = Extension;
 			sourceTree = "<group>";
@@ -314,11 +323,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				56933F5127854A790087C67A /* MediaOption.swift in Sources */,
 				5660472D278437D40072FA66 /* CustomPlayerViewController.swift in Sources */,
 				56604729278437D40072FA66 /* AppDelegate.swift in Sources */,
 				5660475E27843D6C0072FA66 /* Constant.swift in Sources */,
+				56933F53278551EF0087C67A /* SubtitleAudioViewController.swift in Sources */,
 				5660472B278437D40072FA66 /* SceneDelegate.swift in Sources */,
 				5660475B27843D060072FA66 /* PlayerView.swift in Sources */,
+				56933F552785535A0087C67A /* UITableViewCell+Extension.swift in Sources */,
 				566047622784483C0072FA66 /* BufferTimer.swift in Sources */,
 				56933F4F2785187C0087C67A /* ScreenLockedView.swift in Sources */,
 				566047662784849E0072FA66 /* AlertProtocol.swift in Sources */,

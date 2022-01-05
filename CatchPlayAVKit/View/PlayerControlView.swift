@@ -36,6 +36,7 @@ protocol CustomPlayerControlDelegate: AnyObject {
     func proceedNextPlayerItem(_ playerControlview: PlayerControlView)
     func handleTapGesture(_ playerControlview: PlayerControlView)
     func lockScreen(_ playerControlview: PlayerControlView)
+    func showAudioSubtitleSelection(_ playerControlview: PlayerControlView)
 }
 
 class PlayerControlView: UIView {
@@ -350,7 +351,7 @@ class PlayerControlView: UIView {
     }
     
     @objc func setAudioSubtitle() {
-        
+        delegate?.showAudioSubtitleSelection(self)
     }
     
     @objc func goNextEpisode() {
@@ -358,10 +359,6 @@ class PlayerControlView: UIView {
     }
     
     @objc func pressAirPlay() {
-        
-    }
-    
-    @objc func toggleControlVisibility() {
         
     }
     
