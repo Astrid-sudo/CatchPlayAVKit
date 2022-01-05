@@ -274,17 +274,6 @@ class PlayerControlView: UIView {
         return button
     }()
     
-    private var airPlayButton: UIButton = {
-        let button = UIButton()
-        button.setImage(UIImage(systemName: Constant.airplayvideo), for: .normal)
-        button.setTitle(Constant.airPlay, for: .normal)
-        button.titleLabel?.font = UIFont(name: Constant.font, size: 12)
-        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 0)
-        button.tintColor = .white
-        button.addTarget(self, action: #selector(pressAirPlay), for: .touchUpInside)
-        return button
-    }()
-    
     private lazy var moreSettingStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
@@ -484,7 +473,6 @@ class PlayerControlView: UIView {
         moreSettingStackView.addArrangedSubview(lockButton)
         moreSettingStackView.addArrangedSubview(audioSubtitleButton)
         moreSettingStackView.addArrangedSubview(nextEpisodeButton)
-        moreSettingStackView.addArrangedSubview(airPlayButton)
     }
     
     private func setProgressStackView() {

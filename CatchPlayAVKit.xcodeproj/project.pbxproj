@@ -27,6 +27,7 @@
 		56933F5127854A790087C67A /* MediaOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56933F5027854A790087C67A /* MediaOption.swift */; };
 		56933F53278551EF0087C67A /* SubtitleAudioViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56933F52278551EF0087C67A /* SubtitleAudioViewController.swift */; };
 		56933F552785535A0087C67A /* UITableViewCell+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56933F542785535A0087C67A /* UITableViewCell+Extension.swift */; };
+		56933F5C27859C8E0087C67A /* LaunchPageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56933F5B27859C8E0087C67A /* LaunchPageViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -71,6 +72,7 @@
 		56933F5027854A790087C67A /* MediaOption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaOption.swift; sourceTree = "<group>"; };
 		56933F52278551EF0087C67A /* SubtitleAudioViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleAudioViewController.swift; sourceTree = "<group>"; };
 		56933F542785535A0087C67A /* UITableViewCell+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UITableViewCell+Extension.swift"; sourceTree = "<group>"; };
+		56933F5B27859C8E0087C67A /* LaunchPageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchPageViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -167,6 +169,7 @@
 			children = (
 				5660472C278437D40072FA66 /* CustomPlayerViewController.swift */,
 				56933F52278551EF0087C67A /* SubtitleAudioViewController.swift */,
+				56933F5B27859C8E0087C67A /* LaunchPageViewController.swift */,
 			);
 			path = Controller;
 			sourceTree = "<group>";
@@ -330,6 +333,7 @@
 				56933F53278551EF0087C67A /* SubtitleAudioViewController.swift in Sources */,
 				5660472B278437D40072FA66 /* SceneDelegate.swift in Sources */,
 				5660475B27843D060072FA66 /* PlayerView.swift in Sources */,
+				56933F5C27859C8E0087C67A /* LaunchPageViewController.swift in Sources */,
 				56933F552785535A0087C67A /* UITableViewCell+Extension.swift in Sources */,
 				566047622784483C0072FA66 /* BufferTimer.swift in Sources */,
 				56933F4F2785187C0087C67A /* ScreenLockedView.swift in Sources */,
@@ -521,6 +525,7 @@
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
@@ -550,6 +555,7 @@
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;

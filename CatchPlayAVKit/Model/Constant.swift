@@ -25,7 +25,6 @@ struct Constant {
     static let lock = "lock"
     static let textBubble = "text.bubble"
     static let forwardEnd = "forward.end"
-    static let airplayvideo = "airplayvideo"
     static let speakerWave3 = "speaker.wave.3"
     static let lockCircleFill = "lock.circle.fill"
     static let xmarkCircle = "xmark.circle"

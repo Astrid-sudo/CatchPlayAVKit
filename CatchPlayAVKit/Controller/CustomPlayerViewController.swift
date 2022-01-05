@@ -53,8 +53,12 @@ class CustomPlayerViewController: UIViewController {
     
     private var statusObserve: NSKeyValueObservation?
     
-    override open var supportedInterfaceOrientations : UIInterfaceOrientationMask {
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .landscape
+    }
+    
+    override var shouldAutorotate: Bool {
+        return true
     }
     
     private var timeObserverToken: Any?
