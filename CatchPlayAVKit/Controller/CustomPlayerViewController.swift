@@ -141,7 +141,6 @@ class CustomPlayerViewController: UIViewController {
         var audibleOption = [DisplayNameLocale]()
         var legibleOption = [DisplayNameLocale]()
         for characteristic in currentPlayerItem.asset.availableMediaCharacteristicsWithMediaSelectionOptions {
-            
             if characteristic == .audible {
                 if let group = currentPlayerItem.asset.mediaSelectionGroup(forMediaCharacteristic: characteristic) {
                     for option in group.options {
@@ -185,6 +184,7 @@ class CustomPlayerViewController: UIViewController {
                 player.play()
                 player.rate = self.playSpeedRate
                 self.autoHidePlayerControl()
+                self.addPeriodicTimeObserver()
                 self.playerView.playerState = .playing
                 self.playerControlView.togglePlayButtonImage(.pause)
             } else {
@@ -394,6 +394,7 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
             playerView.player?.rate = playSpeedRate
             autoHidePlayerControl()
             playerControlview.togglePlayButtonImage(.indicatorView)
+            addPeriodicTimeObserver()
             print("buffering")
             
         case .unknow, .pause, .readyToPlay:
@@ -475,6 +476,7 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
         } else if playerItem.isPlaybackLikelyToKeepUp {
             player.play()
             playerView.player?.rate = playSpeedRate
+            addPeriodicTimeObserver()
             autoHidePlayerControl()
             playerView.playerState = .playing
             playerControlview.togglePlayButtonImage(.pause)
@@ -489,6 +491,7 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
         if playerView.playerState == .playing {
             playerView.player?.pause()
             playerView.player?.play()
+            addPeriodicTimeObserver()
             self.playSpeedRate = playSpeedRate
             playerView.player?.rate = playSpeedRate
             autoHidePlayerControl()

@@ -98,7 +98,6 @@ class ScreenLockedView: UIView {
     // MARK: - UI method
     
     private func setStackView() {
-//        stackView.isHidden = true
         stackView.alpha = 0
         addSubview(stackView)
         stackView.translatesAutoresizingMaskIntoConstraints = false
