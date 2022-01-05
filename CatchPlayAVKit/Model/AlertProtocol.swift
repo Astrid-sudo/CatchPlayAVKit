@@ -11,11 +11,23 @@ protocol AlertProtocol where Self: UIViewController {}
 
 extension AlertProtocol {
     
-    func popAlert(title: String, message: String) -> UIAlertController {
+    func popAlert(title: String, message: String,
+                  actionText: String? = nil,
+                  cancelText:String? = nil, actionCompletion:(()->Void)? = nil) -> UIAlertController {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert )
-        present(alert, animated: true, completion: nil)
-        let okButton = UIAlertAction(title: Constant.ok, style: .cancel)
-        alert.addAction(okButton)
+        
+        if let actionText = actionText {
+            let actionButton = UIAlertAction(title: actionText, style: .default)
+            alert.addAction(actionButton)
+        }
+        
+        if let cancelText = cancelText {
+            let cancelButton = UIAlertAction(title: cancelText, style: .cancel)
+            alert.addAction(cancelButton)
+        }
+        
+        present(alert, animated: true, completion: actionCompletion)
+
         return alert
     }
     
