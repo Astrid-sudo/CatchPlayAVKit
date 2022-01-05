@@ -35,6 +35,7 @@ protocol CustomPlayerControlDelegate: AnyObject {
     func adjustSpeed(_ playerControlview: PlayerControlView, _ playSpeedRate: Float)
     func proceedNextPlayerItem(_ playerControlview: PlayerControlView)
     func handleTapGesture(_ playerControlview: PlayerControlView)
+    func lockScreen(_ playerControlview: PlayerControlView)
 }
 
 class PlayerControlView: UIView {
@@ -238,14 +239,14 @@ class PlayerControlView: UIView {
     
     private lazy var speedButtons = [slowSpeedButton, normalSpeedButton, fastSpeedButton]
     
-    private var toggleLockButton: UIButton = {
+    private var lockButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(systemName: Constant.lockOpen), for: .normal)
         button.setTitle(Constant.lock, for: .normal)
         button.titleLabel?.font = UIFont(name: Constant.font, size: 12)
         button.titleEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 0)
         button.tintColor = .white
-        button.addTarget(self, action: #selector(toggleLock), for: .touchUpInside)
+        button.addTarget(self, action: #selector(lockScreen), for: .touchUpInside)
         return button
     }()
     
@@ -344,8 +345,8 @@ class PlayerControlView: UIView {
 
     }
     
-    @objc func toggleLock() {
-        
+    @objc func lockScreen() {
+        delegate?.lockScreen(self)
     }
     
     @objc func setAudioSubtitle() {
@@ -483,7 +484,7 @@ class PlayerControlView: UIView {
         moreSettingStackView.addArrangedSubview(slowSpeedButton)
         moreSettingStackView.addArrangedSubview(normalSpeedButton)
         moreSettingStackView.addArrangedSubview(fastSpeedButton)
-        moreSettingStackView.addArrangedSubview(toggleLockButton)
+        moreSettingStackView.addArrangedSubview(lockButton)
         moreSettingStackView.addArrangedSubview(audioSubtitleButton)
         moreSettingStackView.addArrangedSubview(nextEpisodeButton)
         moreSettingStackView.addArrangedSubview(airPlayButton)

@@ -33,6 +33,12 @@ class CustomPlayerViewController: UIViewController {
         return playerControlView
     }()
     
+    private lazy var screenLockedView: ScreenLockedView = {
+        let screenLockedView = ScreenLockedView()
+        screenLockedView.delegate = self
+        return screenLockedView
+    }()
+    
     var noNetworkAlert: UIAlertController?
     
     // MARK: - properties
@@ -251,34 +257,64 @@ class CustomPlayerViewController: UIViewController {
         }
     }
     
-    private func hidePlayerControl(isHidden: Bool) {
-        
-        if isHidden {
-            UIView.animate(withDuration: 0.4, delay: 0, options: .curveEaseIn) {
+    private func hidePlayerControl(animateDuration: TimeInterval = 0.4) {
+            UIView.animate(withDuration: animateDuration, delay: 0, options: .curveEaseIn) {
                 self.playerControlView.alpha = 0
             }
             Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { _ in
-                self.playerControlView.isHidden = isHidden
+                self.playerControlView.isHidden = true
             }
-        
-        } else {
-            self.playerControlView.isHidden = isHidden
-            UIView.animate(withDuration: 0.4, delay: 0, options: .curveEaseOut) {
-                self.playerControlView.alpha = 1
-            }
+    }
+    
+    private func showPlayerControl(animateDuration: TimeInterval = 0.4) {
+        self.playerControlView.isHidden = false
+        UIView.animate(withDuration: animateDuration, delay: 0, options: .curveEaseOut) {
+            self.playerControlView.alpha = 1
         }
     }
     
-    func autoHidePlayerControl() {
+    private func autoHidePlayerControl() {
+        autoHideTimer?.cancel()
         autoHideTimer = BufferTimer(interval: 0, delaySecs: 3, repeats: false, action: { [weak self] _ in
             guard let self = self else { return }
-            self.hidePlayerControl(isHidden: true)
+            self.hidePlayerControl()
         })
         autoHideTimer?.start()
     }
     
-    func cancelAutoHidePlayerControl() {
+    private func cancelAutoHidePlayerControl() {
         autoHideTimer?.cancel()
+    }
+    
+    private func addScreenLockedView() {
+        view.addSubview(screenLockedView)
+        screenLockedView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            screenLockedView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            screenLockedView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            screenLockedView.topAnchor.constraint(equalTo: view.topAnchor),
+            screenLockedView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+    }
+    
+    private func removeScreenLockedView() {
+        screenLockedView.removeFromSuperview()
+    }
+    
+    private func showScreenLockedPanel(delay: TimeInterval = 0, for seconds: TimeInterval = 3) {
+        screenLockedView.uiPropertiesIsHidden(isHidden: false)
+        UIView.animate(withDuration: 0.3, delay: delay, options: .curveEaseOut) {
+            self.screenLockedView.uiPropertiesAlpha(1)
+        }
+        
+        UIView.animate(withDuration: 0.3, delay: delay + seconds, options: .curveEaseOut) {
+            self.screenLockedView.uiPropertiesAlpha(0)
+        }
+        
+        Timer.scheduledTimer(withTimeInterval: delay + seconds + 0.6, repeats: false) {[weak self] _ in
+            guard let self = self else { return }
+            self.screenLockedView.uiPropertiesIsHidden(isHidden: true)
+        }
     }
     
 }
@@ -286,7 +322,7 @@ class CustomPlayerViewController: UIViewController {
 // MARK: - CustomPlayerControlDelegate
 
 extension CustomPlayerViewController: CustomPlayerControlDelegate {
-    
+
     func togglePlay(_ playerControlview: PlayerControlView) {
         
         switch playerView.playerState {
@@ -419,10 +455,17 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
         }
     }
     
+    /// Hide player control when user tap playerControlView.
     func handleTapGesture(_ playerControlview: PlayerControlView) {
-        hidePlayerControl(isHidden: true)
+        hidePlayerControl()
     }
     
+    func lockScreen(_ playerControlview: PlayerControlView) {
+        hidePlayerControl(animateDuration: 0.2)
+        addScreenLockedView()
+        showScreenLockedPanel()
+    }
+
 }
 
 // MARK: - CheckNetWorkProtocol
@@ -445,11 +488,32 @@ extension CustomPlayerViewController: CheckNetWorkProtocol {
 
 }
 
+// MARK: - PlayerViewDelegate
+
 extension CustomPlayerViewController: PlayerViewDelegate {
     
+    /// Show player control when user tap playerView.
     func handleTapGesture(from playerView: PlayerView) {
-        hidePlayerControl(isHidden: false)
+        showPlayerControl()
         autoHidePlayerControl()
+    }
+    
+}
+
+// MARK: - ScreenLockedViewDelegate
+
+extension CustomPlayerViewController: ScreenLockedViewDelegate {
+    
+    /// Show screen lock panel when user tap screenLockedView.
+    func handleTapGesture(from screenLockedView: ScreenLockedView) {
+        print("Tap screenLockedView")
+        showScreenLockedPanel()
+    }
+    
+    func unlockScreen(from screenLockedView: ScreenLockedView) {
+        print("Unlock Screen screenLockedView")
+        removeScreenLockedView()
+        showPlayerControl()
     }
     
 }
