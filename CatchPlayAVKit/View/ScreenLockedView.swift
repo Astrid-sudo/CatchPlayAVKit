@@ -27,6 +27,7 @@ class ScreenLockedView: UIView {
         button.setImage(bigImage, for: .normal)
         button.tintColor = .white
         button.addTarget(self, action: #selector(unlock), for: .touchUpInside)
+        button.accessibilityIdentifier = Constant.unlockButton
         return button
     }()
     

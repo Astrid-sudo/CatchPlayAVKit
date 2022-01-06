@@ -99,6 +99,7 @@ class PlayerControlView: UIView {
         button.setImage(bigImage, for: .normal)
         button.tintColor = .white
         button.addTarget(self, action: #selector(dismissCustomPlayerViewController), for: .touchUpInside)
+        button.accessibilityIdentifier = Constant.dismissButton
         return button
     }()
     
@@ -126,6 +127,7 @@ class PlayerControlView: UIView {
         button.setImage(bigImage, for: .normal)
         button.tintColor = .white
         button.addTarget(self, action: #selector(togglePlay), for: .touchUpInside)
+        button.accessibilityIdentifier = Constant.playImageButton
         return button
     }()
     

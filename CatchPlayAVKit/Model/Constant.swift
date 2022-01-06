@@ -46,6 +46,11 @@ struct Constant {
     static let speedRate05 = "0.5x"
     static let speedRate1 = "1x"
     static let speedRate15 = "1.5x"
+    
+    static let playImageButton = "playImageButton"
+    static let unlockButton = "unlockButton"
+    static let dismissButton = "dismissButton"
+    static let audioTableView = "audioTableView"
 
 }
 

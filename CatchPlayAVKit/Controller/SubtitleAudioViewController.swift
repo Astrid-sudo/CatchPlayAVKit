@@ -52,6 +52,7 @@ class SubtitleAudioViewController: UIViewController {
         table.showsVerticalScrollIndicator = false
         table.register(UITableViewCell.self, forCellReuseIdentifier: UITableViewCell.reuseIdentifier)
         table.register(UITableViewHeaderFooterView.self, forHeaderFooterViewReuseIdentifier: UITableViewHeaderFooterView.reuseIdentifier)
+        table.accessibilityIdentifier = Constant.audioTableView
         return table
     }()
     
