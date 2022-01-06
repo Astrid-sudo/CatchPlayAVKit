@@ -38,6 +38,7 @@ protocol CustomPlayerControlDelegate: AnyObject {
     func lockScreen(_ playerControlview: PlayerControlView)
     func showAudioSubtitleSelection(_ playerControlview: PlayerControlView)
     func dismissCustomPlayerViewController(_ playerControlview: PlayerControlView)
+    func adjustBrightness(_ playerControlview: PlayerControlView,_ sliderValue: Double)
 }
 
 class PlayerControlView: UIView {
@@ -84,14 +85,6 @@ class PlayerControlView: UIView {
         return view
     }()
     
-    private lazy var episodeTitleLabel: UILabel = {
-        let label = UILabel()
-        label.text = Constant.loading
-        label.textColor = .white
-        label.textAlignment = .center
-        return label
-    }()
-    
     private lazy var brightnessIcon: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(systemName: Constant.sunMax)
@@ -111,14 +104,17 @@ class PlayerControlView: UIView {
     
     private lazy var brightnessSlider: UISlider = {
         let slider = UISlider()
-        slider.thumbTintColor = .clear
         slider.maximumTrackTintColor = .gray
         slider.minimumTrackTintColor = .orange
         slider.minimumValue = 0
         slider.maximumValue = 1
-        slider.value = 1
+        slider.value = Float(UIScreen.main.brightness)
         slider.isEnabled = true
         slider.isContinuous = true
+        let imagee = UIImage(systemName: Constant.circleFill)
+        let colorImage = imagee?.withTintColor(.orange, renderingMode: .alwaysOriginal)
+        slider.setThumbImage((colorImage), for: .normal)
+        slider.setThumbImage((colorImage), for: .highlighted)
         slider.addTarget(self, action: #selector(adjustBrightness), for: UIControl.Event.valueChanged)
         return slider
     }()
@@ -350,7 +346,7 @@ class PlayerControlView: UIView {
     }
     
     @objc func adjustBrightness() {
-        
+        delegate?.adjustBrightness(self, Double(brightnessSlider.value))
     }
     
     @objc func tapAction() {
@@ -361,7 +357,6 @@ class PlayerControlView: UIView {
     
     private func configUI() {
         setBackgroundDimView()
-        setEpisodeTitleLabel()
         setBrightnessIcon()
         setDismissButton()
         setPlayButton()
@@ -384,21 +379,12 @@ class PlayerControlView: UIView {
         ])
     }
     
-    private func setEpisodeTitleLabel() {
-        addSubview(episodeTitleLabel)
-        episodeTitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            episodeTitleLabel.centerXAnchor.constraint(equalTo: self.centerXAnchor),
-            episodeTitleLabel.topAnchor.constraint(equalTo: self.topAnchor, constant: 16)
-        ])
-    }
-    
     private func setBrightnessIcon() {
         addSubview(brightnessIcon)
         brightnessIcon.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             brightnessIcon.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 32),
-            brightnessIcon.topAnchor.constraint(equalTo: episodeTitleLabel.bottomAnchor, constant: 16)
+            brightnessIcon.topAnchor.constraint(equalTo: self.topAnchor, constant: 40)
         ])
     }
     
@@ -516,6 +502,10 @@ class PlayerControlView: UIView {
     }
     
     // MARK: - method for CustomPlayViewController
+    
+    func updateBrightnessSliderValue() {
+        brightnessSlider.value = Float(UIScreen.main.brightness)
+    }
     
     func showIdicatorView() {
         playButton.isHidden = true

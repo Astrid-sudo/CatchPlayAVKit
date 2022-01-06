@@ -101,6 +101,12 @@ class CustomPlayerViewController: UIViewController {
         setPlayerControlView()
         setPlayContent()
         checkNetwork(connectionHandler: connectionHandler, noConnectionHandler: noConnectionHandler)
+        observeScreenBrightness()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        NotificationCenter.default.removeObserver(self)
     }
     
     // MARK: - UI method
@@ -387,6 +393,15 @@ class CustomPlayerViewController: UIViewController {
         }
     }
     
+    ///Add observer UIScreen.brightnessDidChangeNotification
+    private func observeScreenBrightness() {
+        NotificationCenter.default.addObserver(self, selector: #selector(updateBrightnessSlider), name: UIScreen.brightnessDidChangeNotification, object: nil)
+    }
+    
+    @objc func updateBrightnessSlider() {
+        playerControlView.updateBrightnessSliderValue()
+    }
+    
 }
 
 // MARK: - CustomPlayerControlDelegate
@@ -550,7 +565,11 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
         rotateDisplay(to: .portrait)
         dismiss(animated: true, completion: nil)
     }
-
+    
+    func adjustBrightness(_ playerControlview: PlayerControlView, _ sliderValue: Double) {
+        UIScreen.main.brightness = CGFloat(sliderValue)
+    }
+    
 }
 
 // MARK: - CheckNetWorkProtocol

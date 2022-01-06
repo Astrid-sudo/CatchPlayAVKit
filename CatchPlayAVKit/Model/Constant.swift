@@ -18,6 +18,7 @@ struct Constant {
     static let play = "play"
     static let pause = "pause"
     static let sunMax = "sun.max"
+    static let sunMin = "sun.min"
     static let goforward = "goforward.15"
     static let gobackward = "gobackward.15"
     static let speedometer = "speedometer"
@@ -28,6 +29,8 @@ struct Constant {
     static let speakerWave3 = "speaker.wave.3"
     static let lockCircleFill = "lock.circle.fill"
     static let xmarkCircle = "xmark.circle"
+    static let sunMaxCircleFill = "sun.max.circle.fill"
+    static let circleFill = "circle.fill"
     static let ok = "OK"
     
     static let loading = "loading..."
