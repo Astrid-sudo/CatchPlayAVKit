@@ -26,7 +26,7 @@ enum PlayButtonType {
     }
 }
 
-protocol CustomPlayerControlDelegate: AnyObject {
+protocol PlayerControlViewDelegate: AnyObject {
     func togglePlay(_ playerControlview: PlayerControlView)
     func slideToTime(_ playerControlview: PlayerControlView,_ sliderValue: Double)
     func pauseToSeek(_ playerControlview: PlayerControlView)
@@ -74,7 +74,7 @@ class PlayerControlView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    weak var delegate: CustomPlayerControlDelegate?
+    weak var delegate: PlayerControlViewDelegate?
     
     // MARK: - UI properties
     

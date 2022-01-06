@@ -7,22 +7,35 @@
 
 import XCTest
 @testable import CatchPlayAVKit
+import CoreMedia
 
 class CatchPlayAVKitTests: XCTestCase {
+    
+    var sut: CustomPlayerViewController!
 
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+        try super.setUpWithError()
+        sut = CustomPlayerViewController()
     }
 
     override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+        sut = nil
+        try super.tearDownWithError()
     }
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+    func testJumpToTimeBackward() throws {
+        // arrange
+        sut.currentTime = .zero
+        let playControlView = PlayerControlView()
+        let jumpToType = JumpTimeType.backward(100)
+        
+        // act
+        sut.jumpToTime(playControlView, jumpToType)
+       
+        // assert 
+        XCTAssertTrue(sut.currentTime == .zero)
     }
-
+    
     func testPerformanceExample() throws {
         // This is an example of a performance test case.
         self.measure {
