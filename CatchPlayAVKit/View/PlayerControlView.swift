@@ -37,6 +37,7 @@ protocol CustomPlayerControlDelegate: AnyObject {
     func handleTapGesture(_ playerControlview: PlayerControlView)
     func lockScreen(_ playerControlview: PlayerControlView)
     func showAudioSubtitleSelection(_ playerControlview: PlayerControlView)
+    func dismissCustomPlayerViewController(_ playerControlview: PlayerControlView)
 }
 
 class PlayerControlView: UIView {
@@ -98,11 +99,14 @@ class PlayerControlView: UIView {
         return imageView
     }()
     
-    private lazy var volumeIcon: UIImageView = {
-        let imageView = UIImageView()
-        imageView.image = UIImage(systemName: Constant.speakerWave3)
-        imageView.tintColor = .white
-        return imageView
+    private lazy var dismissButton: UIButton = {
+        let button = UIButton()
+        let config = UIImage.SymbolConfiguration(pointSize: 32)
+        let bigImage = UIImage(systemName: Constant.xmarkCircle, withConfiguration: config)
+        button.setImage(bigImage, for: .normal)
+        button.tintColor = .white
+        button.addTarget(self, action: #selector(dismissCustomPlayerViewController), for: .touchUpInside)
+        return button
     }()
     
     private lazy var brightnessSlider: UISlider = {
@@ -116,20 +120,6 @@ class PlayerControlView: UIView {
         slider.isEnabled = true
         slider.isContinuous = true
         slider.addTarget(self, action: #selector(adjustBrightness), for: UIControl.Event.valueChanged)
-        return slider
-    }()
-    
-    private lazy var volumeSlider: UISlider = {
-        let slider = UISlider()
-        slider.thumbTintColor = .clear
-        slider.maximumTrackTintColor = .gray
-        slider.minimumTrackTintColor = .orange
-        slider.minimumValue = 0
-        slider.maximumValue = 1
-        slider.value = 1
-        slider.isEnabled = true
-        slider.isContinuous = true
-        slider.addTarget(self, action: #selector(adjustVolume), for: UIControl.Event.valueChanged)
         return slider
     }()
     
@@ -347,10 +337,6 @@ class PlayerControlView: UIView {
         delegate?.proceedNextPlayerItem(self)
     }
     
-    @objc func pressAirPlay() {
-        
-    }
-    
     @objc func progressSliderValueChanged() {
         delegate?.slideToTime(self, Double(progressSlider.value))
     }
@@ -367,10 +353,6 @@ class PlayerControlView: UIView {
         
     }
     
-    @objc func adjustVolume() {
-        
-    }
-    
     @objc func tapAction() {
         delegate?.handleTapGesture(self)
     }
@@ -381,7 +363,7 @@ class PlayerControlView: UIView {
         setBackgroundDimView()
         setEpisodeTitleLabel()
         setBrightnessIcon()
-        setvolumeIcon()
+        setDismissButton()
         setPlayButton()
         setIndicatorView()
         setGoForwardButton()
@@ -389,7 +371,6 @@ class PlayerControlView: UIView {
         setMoreSettingStackView()
         setProgressStackView()
         setBrightnessSlider()
-        setVolumeSlider()
     }
     
     private func setBackgroundDimView() {
@@ -421,12 +402,12 @@ class PlayerControlView: UIView {
         ])
     }
     
-    private func setvolumeIcon() {
-        addSubview(volumeIcon)
-        volumeIcon.translatesAutoresizingMaskIntoConstraints = false
+    private func setDismissButton() {
+        addSubview(dismissButton)
+        dismissButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            volumeIcon.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -32),
-            volumeIcon.topAnchor.constraint(equalTo: brightnessIcon.topAnchor)
+            dismissButton.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -32),
+            dismissButton.topAnchor.constraint(equalTo: self.topAnchor, constant: 32)
         ])
     }
     
@@ -495,13 +476,6 @@ class PlayerControlView: UIView {
         brightnessSlider.frame = CGRect(x: 40, y: 85, width: 5, height: screenHeight * 2 / 5)
     }
     
-    private func setVolumeSlider() {
-        addSubview(volumeSlider)
-        volumeSlider.transform = CGAffineTransform(rotationAngle: -CGFloat(Double.pi / 2))
-        volumeSlider.translatesAutoresizingMaskIntoConstraints = true
-        volumeSlider.frame = CGRect(x: screenWidth - 48, y: 85, width: 5, height: screenHeight * 2 / 5)
-    }
-    
     private func setIndicatorView() {
         addSubview(indicatorView)
         indicatorView.translatesAutoresizingMaskIntoConstraints = false
@@ -523,6 +497,8 @@ class PlayerControlView: UIView {
         durationLabel.text = floatToTimecodeString(seconds: duration)
     }
     
+    // MARK: - method
+    
     func floatToTimecodeString(seconds: Float) -> String {
         guard !(seconds.isNaN || seconds.isInfinite) else {
             return "00:00"
@@ -533,6 +509,10 @@ class PlayerControlView: UIView {
         let seconds = time % 60
         let timecodeString = hours == .zero ? String(format: "%02ld:%02ld", minutes, seconds) : String(format: "%02ld:%02ld:%02ld", hours, minutes, seconds)
         return timecodeString
+    }
+    
+    @objc func dismissCustomPlayerViewController() {
+        delegate?.dismissCustomPlayerViewController(self)
     }
     
     // MARK: - method for CustomPlayViewController

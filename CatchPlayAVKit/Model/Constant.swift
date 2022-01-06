@@ -42,6 +42,7 @@ struct Constant {
     static let subtitles = "Subtitles"
     
     static let font = "PingFang TC"
+    static let orientation = "orientation"
     
     static let speedRate05 = "0.5x"
     static let speedRate1 = "1x"

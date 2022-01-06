@@ -66,7 +66,7 @@ class SubtitleAudioViewController: UIViewController {
         return table
     }()
     
-    private lazy var dismissButtonButton: UIButton = {
+    private lazy var dismissButton: UIButton = {
         let button = UIButton()
         let config = UIImage.SymbolConfiguration(pointSize: 32)
         let bigImage = UIImage(systemName: Constant.xmarkCircle, withConfiguration: config)
@@ -99,11 +99,11 @@ class SubtitleAudioViewController: UIViewController {
     // MARK: - UI method
     
     private func setDismissButton() {
-        view.addSubview(dismissButtonButton)
-        dismissButtonButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(dismissButton)
+        dismissButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            dismissButtonButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            dismissButtonButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 16)
+            dismissButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            dismissButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 16)
         ])
     }
     
@@ -130,7 +130,7 @@ class SubtitleAudioViewController: UIViewController {
             stackView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
             stackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
             stackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
-            stackView.trailingAnchor.constraint(equalTo: dismissButtonButton.leadingAnchor, constant: -16)
+            stackView.trailingAnchor.constraint(equalTo: dismissButton.leadingAnchor, constant: -16)
         ])
         stackView.addArrangedSubview(audioTableView)
         stackView.addArrangedSubview(subtitleTableView)

@@ -29,10 +29,6 @@ class LaunchPageViewController: UIViewController {
     
     // MARK: - UI method
 
-//    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-//        return .portrait
-//    }
-
     private func setViewBackgroundcolor() {
         view.backgroundColor = .black
     }
@@ -51,11 +47,9 @@ class LaunchPageViewController: UIViewController {
     @objc func playVideo() {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         guard let customPlayerViewController = storyboard.instantiateViewController(withIdentifier: CustomPlayerViewController.reuseIdentifier) as? CustomPlayerViewController else { return }
-//        navigationController?.pushViewController(customPlayerViewController, animated: true)
+        rotateDisplay(to: .landscape)
         present(customPlayerViewController, animated: true, completion: nil)
     }
-    
-    
     
 }
 

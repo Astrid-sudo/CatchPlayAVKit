@@ -268,8 +268,12 @@ class CustomPlayerViewController: UIViewController {
         }
     }
     
+    /// The last player item playback end.
     @objc func didPlaybackEnd() {
         print("Play back end")
+        rotateDisplay(to: .portrait)
+        presentingViewController?.dismiss(animated: true, completion: nil)
+        dismiss(animated: true, completion: nil)
     }
     
     /// Set selected audio track to current player item.
@@ -540,6 +544,11 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
         subtitleAudioViewController.mediaOption = mediaOption
         subtitleAudioViewController.delegate = self
         present(subtitleAudioViewController, animated: true, completion: nil)
+    }
+    
+    func dismissCustomPlayerViewController(_ playerControlview: PlayerControlView) {
+        rotateDisplay(to: .portrait)
+        dismiss(animated: true, completion: nil)
     }
 
 }
