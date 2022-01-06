@@ -37,6 +37,8 @@ protocol CustomPlayerControlDelegate: AnyObject {
     func handleTapGesture(_ playerControlview: PlayerControlView)
     func lockScreen(_ playerControlview: PlayerControlView)
     func showAudioSubtitleSelection(_ playerControlview: PlayerControlView)
+    func dismissCustomPlayerViewController(_ playerControlview: PlayerControlView)
+    func adjustBrightness(_ playerControlview: PlayerControlView,_ sliderValue: Double)
 }
 
 class PlayerControlView: UIView {
@@ -76,64 +78,48 @@ class PlayerControlView: UIView {
     
     // MARK: - UI properties
     
-    private var backgroundDimView: UIView = {
+    private lazy var backgroundDimView: UIView = {
         let view = UIView()
         view.backgroundColor = .black
         view.alpha = 0.65
         return view
     }()
     
-    private var episodeTitleLabel: UILabel = {
-        let label = UILabel()
-        label.text = Constant.loading
-        label.textColor = .white
-        label.textAlignment = .center
-        return label
-    }()
-    
-    private var brightnessIcon: UIImageView = {
+    private lazy var brightnessIcon: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(systemName: Constant.sunMax)
         imageView.tintColor = .white
         return imageView
     }()
     
-    private var volumeIcon: UIImageView = {
-        let imageView = UIImageView()
-        imageView.image = UIImage(systemName: Constant.speakerWave3)
-        imageView.tintColor = .white
-        return imageView
+    private lazy var dismissButton: UIButton = {
+        let button = UIButton()
+        let config = UIImage.SymbolConfiguration(pointSize: 32)
+        let bigImage = UIImage(systemName: Constant.xmarkCircle, withConfiguration: config)
+        button.setImage(bigImage, for: .normal)
+        button.tintColor = .white
+        button.addTarget(self, action: #selector(dismissCustomPlayerViewController), for: .touchUpInside)
+        return button
     }()
     
-    private var brightnessSlider: UISlider = {
+    private lazy var brightnessSlider: UISlider = {
         let slider = UISlider()
-        slider.thumbTintColor = .clear
         slider.maximumTrackTintColor = .gray
         slider.minimumTrackTintColor = .orange
         slider.minimumValue = 0
         slider.maximumValue = 1
-        slider.value = 1
+        slider.value = Float(UIScreen.main.brightness)
         slider.isEnabled = true
         slider.isContinuous = true
+        let imagee = UIImage(systemName: Constant.circleFill)
+        let colorImage = imagee?.withTintColor(.orange, renderingMode: .alwaysOriginal)
+        slider.setThumbImage((colorImage), for: .normal)
+        slider.setThumbImage((colorImage), for: .highlighted)
         slider.addTarget(self, action: #selector(adjustBrightness), for: UIControl.Event.valueChanged)
         return slider
     }()
     
-    private var volumeSlider: UISlider = {
-        let slider = UISlider()
-        slider.thumbTintColor = .clear
-        slider.maximumTrackTintColor = .gray
-        slider.minimumTrackTintColor = .orange
-        slider.minimumValue = 0
-        slider.maximumValue = 1
-        slider.value = 1
-        slider.isEnabled = true
-        slider.isContinuous = true
-        slider.addTarget(self, action: #selector(adjustVolume), for: UIControl.Event.valueChanged)
-        return slider
-    }()
-    
-    private var playButton: UIButton = {
+    private lazy var playButton: UIButton = {
         let button = UIButton()
         let config = UIImage.SymbolConfiguration(pointSize: 32)
         let bigImage = UIImage(systemName: Constant.play, withConfiguration: config)
@@ -143,7 +129,7 @@ class PlayerControlView: UIView {
         return button
     }()
     
-    private var goForwardButton: UIButton = {
+    private lazy var goForwardButton: UIButton = {
         let button = UIButton()
         let config = UIImage.SymbolConfiguration(pointSize: 32)
         let bigImage = UIImage(systemName: Constant.goforward, withConfiguration: config)
@@ -153,7 +139,7 @@ class PlayerControlView: UIView {
         return button
     }()
     
-    private var goBackwardButton: UIButton = {
+    private lazy var goBackwardButton: UIButton = {
         let button = UIButton()
         let config = UIImage.SymbolConfiguration(pointSize: 32)
         let bigImage = UIImage(systemName: Constant.gobackward, withConfiguration: config)
@@ -163,7 +149,7 @@ class PlayerControlView: UIView {
         return button
     }()
     
-    private var progressSlider: UISlider = {
+    private lazy var progressSlider: UISlider = {
         let slider = UISlider()
         slider.maximumTrackTintColor = .gray
         slider.minimumTrackTintColor = .orange
@@ -178,7 +164,7 @@ class PlayerControlView: UIView {
         return slider
     }()
     
-    private var durationLabel: UILabel = {
+    private lazy var durationLabel: UILabel = {
         let label = UILabel()
         label.text = "00:00"
         label.font = .monospacedDigitSystemFont(ofSize: 14, weight: .regular)
@@ -189,7 +175,7 @@ class PlayerControlView: UIView {
         return label
     }()
     
-    private var currentTimeLabel: UILabel = {
+    private lazy var currentTimeLabel: UILabel = {
         let label = UILabel()
         label.text = "00:00 /"
         label.font = .monospacedDigitSystemFont(ofSize: 14, weight: .regular)
@@ -200,7 +186,7 @@ class PlayerControlView: UIView {
         return label
     }()
     
-    private var slowSpeedButton: UIButton = {
+    private lazy var slowSpeedButton: UIButton = {
         let speedImage = UIImage(systemName: Constant.speedometer)
         let button = UIButton()
         button.setImage(speedImage, for: .normal)
@@ -213,7 +199,7 @@ class PlayerControlView: UIView {
         return button
     }()
     
-    private var normalSpeedButton: UIButton = {
+    private lazy var normalSpeedButton: UIButton = {
         let speedImage = UIImage(systemName: Constant.speedometer)
         let button = UIButton()
         button.setImage(speedImage, for: .normal)
@@ -226,7 +212,7 @@ class PlayerControlView: UIView {
         return button
     }()
     
-    private var fastSpeedButton: UIButton = {
+    private lazy var fastSpeedButton: UIButton = {
         let speedImage = UIImage(systemName: Constant.speedometer)
         let button = UIButton()
         button.setImage(speedImage, for: .normal)
@@ -240,7 +226,7 @@ class PlayerControlView: UIView {
     
     private lazy var speedButtons = [slowSpeedButton, normalSpeedButton, fastSpeedButton]
     
-    private var lockButton: UIButton = {
+    private lazy var lockButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(systemName: Constant.lockOpen), for: .normal)
         button.setTitle(Constant.lock, for: .normal)
@@ -251,7 +237,7 @@ class PlayerControlView: UIView {
         return button
     }()
     
-    private var audioSubtitleButton: UIButton = {
+    private lazy var audioSubtitleButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(systemName: Constant.textBubble), for: .normal)
         button.setTitle(Constant.subtitleAndAudio, for: .normal)
@@ -263,7 +249,7 @@ class PlayerControlView: UIView {
         return button
     }()
     
-    private var nextEpisodeButton: UIButton = {
+    private lazy var nextEpisodeButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(systemName: Constant.forwardEnd), for: .normal)
         button.setTitle(Constant.nextEpisode, for: .normal)
@@ -271,17 +257,6 @@ class PlayerControlView: UIView {
         button.titleEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 0)
         button.tintColor = .white
         button.addTarget(self, action: #selector(goNextEpisode), for: .touchUpInside)
-        return button
-    }()
-    
-    private var airPlayButton: UIButton = {
-        let button = UIButton()
-        button.setImage(UIImage(systemName: Constant.airplayvideo), for: .normal)
-        button.setTitle(Constant.airPlay, for: .normal)
-        button.titleLabel?.font = UIFont(name: Constant.font, size: 12)
-        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 0)
-        button.tintColor = .white
-        button.addTarget(self, action: #selector(pressAirPlay), for: .touchUpInside)
         return button
     }()
     
@@ -358,10 +333,6 @@ class PlayerControlView: UIView {
         delegate?.proceedNextPlayerItem(self)
     }
     
-    @objc func pressAirPlay() {
-        
-    }
-    
     @objc func progressSliderValueChanged() {
         delegate?.slideToTime(self, Double(progressSlider.value))
     }
@@ -375,11 +346,7 @@ class PlayerControlView: UIView {
     }
     
     @objc func adjustBrightness() {
-        
-    }
-    
-    @objc func adjustVolume() {
-        
+        delegate?.adjustBrightness(self, Double(brightnessSlider.value))
     }
     
     @objc func tapAction() {
@@ -390,9 +357,8 @@ class PlayerControlView: UIView {
     
     private func configUI() {
         setBackgroundDimView()
-        setEpisodeTitleLabel()
         setBrightnessIcon()
-        setvolumeIcon()
+        setDismissButton()
         setPlayButton()
         setIndicatorView()
         setGoForwardButton()
@@ -400,7 +366,6 @@ class PlayerControlView: UIView {
         setMoreSettingStackView()
         setProgressStackView()
         setBrightnessSlider()
-        setVolumeSlider()
     }
     
     private func setBackgroundDimView() {
@@ -414,30 +379,21 @@ class PlayerControlView: UIView {
         ])
     }
     
-    private func setEpisodeTitleLabel() {
-        addSubview(episodeTitleLabel)
-        episodeTitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            episodeTitleLabel.centerXAnchor.constraint(equalTo: self.centerXAnchor),
-            episodeTitleLabel.topAnchor.constraint(equalTo: self.topAnchor, constant: 16)
-        ])
-    }
-    
     private func setBrightnessIcon() {
         addSubview(brightnessIcon)
         brightnessIcon.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             brightnessIcon.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 32),
-            brightnessIcon.topAnchor.constraint(equalTo: episodeTitleLabel.bottomAnchor, constant: 16)
+            brightnessIcon.topAnchor.constraint(equalTo: self.topAnchor, constant: 40)
         ])
     }
     
-    private func setvolumeIcon() {
-        addSubview(volumeIcon)
-        volumeIcon.translatesAutoresizingMaskIntoConstraints = false
+    private func setDismissButton() {
+        addSubview(dismissButton)
+        dismissButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            volumeIcon.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -32),
-            volumeIcon.topAnchor.constraint(equalTo: brightnessIcon.topAnchor)
+            dismissButton.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -32),
+            dismissButton.topAnchor.constraint(equalTo: self.topAnchor, constant: 32)
         ])
     }
     
@@ -484,7 +440,6 @@ class PlayerControlView: UIView {
         moreSettingStackView.addArrangedSubview(lockButton)
         moreSettingStackView.addArrangedSubview(audioSubtitleButton)
         moreSettingStackView.addArrangedSubview(nextEpisodeButton)
-        moreSettingStackView.addArrangedSubview(airPlayButton)
     }
     
     private func setProgressStackView() {
@@ -505,13 +460,6 @@ class PlayerControlView: UIView {
         brightnessSlider.transform = CGAffineTransform(rotationAngle: -CGFloat(Double.pi / 2))
         brightnessSlider.translatesAutoresizingMaskIntoConstraints = true
         brightnessSlider.frame = CGRect(x: 40, y: 85, width: 5, height: screenHeight * 2 / 5)
-    }
-    
-    private func setVolumeSlider() {
-        addSubview(volumeSlider)
-        volumeSlider.transform = CGAffineTransform(rotationAngle: -CGFloat(Double.pi / 2))
-        volumeSlider.translatesAutoresizingMaskIntoConstraints = true
-        volumeSlider.frame = CGRect(x: screenWidth - 48, y: 85, width: 5, height: screenHeight * 2 / 5)
     }
     
     private func setIndicatorView() {
@@ -535,6 +483,8 @@ class PlayerControlView: UIView {
         durationLabel.text = floatToTimecodeString(seconds: duration)
     }
     
+    // MARK: - method
+    
     func floatToTimecodeString(seconds: Float) -> String {
         guard !(seconds.isNaN || seconds.isInfinite) else {
             return "00:00"
@@ -547,7 +497,15 @@ class PlayerControlView: UIView {
         return timecodeString
     }
     
+    @objc func dismissCustomPlayerViewController() {
+        delegate?.dismissCustomPlayerViewController(self)
+    }
+    
     // MARK: - method for CustomPlayViewController
+    
+    func updateBrightnessSliderValue() {
+        brightnessSlider.value = Float(UIScreen.main.brightness)
+    }
     
     func showIdicatorView() {
         playButton.isHidden = true

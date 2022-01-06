@@ -18,6 +18,7 @@ struct Constant {
     static let play = "play"
     static let pause = "pause"
     static let sunMax = "sun.max"
+    static let sunMin = "sun.min"
     static let goforward = "goforward.15"
     static let gobackward = "gobackward.15"
     static let speedometer = "speedometer"
@@ -25,10 +26,11 @@ struct Constant {
     static let lock = "lock"
     static let textBubble = "text.bubble"
     static let forwardEnd = "forward.end"
-    static let airplayvideo = "airplayvideo"
     static let speakerWave3 = "speaker.wave.3"
     static let lockCircleFill = "lock.circle.fill"
     static let xmarkCircle = "xmark.circle"
+    static let sunMaxCircleFill = "sun.max.circle.fill"
+    static let circleFill = "circle.fill"
     static let ok = "OK"
     
     static let loading = "loading..."
@@ -43,6 +45,7 @@ struct Constant {
     static let subtitles = "Subtitles"
     
     static let font = "PingFang TC"
+    static let orientation = "orientation"
     
     static let speedRate05 = "0.5x"
     static let speedRate1 = "1x"

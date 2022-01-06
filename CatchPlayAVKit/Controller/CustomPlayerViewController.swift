@@ -53,8 +53,12 @@ class CustomPlayerViewController: UIViewController {
     
     private var statusObserve: NSKeyValueObservation?
     
-    override open var supportedInterfaceOrientations : UIInterfaceOrientationMask {
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .landscape
+    }
+    
+    override var shouldAutorotate: Bool {
+        return true
     }
     
     private var timeObserverToken: Any?
@@ -97,18 +101,28 @@ class CustomPlayerViewController: UIViewController {
         setPlayerControlView()
         setPlayContent()
         checkNetwork(connectionHandler: connectionHandler, noConnectionHandler: noConnectionHandler)
+        observeScreenBrightness()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        NotificationCenter.default.removeObserver(self)
     }
     
     // MARK: - UI method
+    
+    private func setBackgroundcolor() {
+        view.backgroundColor = .black
+    }
     
     private func setPlayerView() {
         view.addSubview(playerView)
         playerView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            playerView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
-            playerView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-            playerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            playerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+            playerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            playerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            playerView.topAnchor.constraint(equalTo: view.topAnchor),
+            playerView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
     
@@ -116,10 +130,10 @@ class CustomPlayerViewController: UIViewController {
         view.addSubview(playerControlView)
         playerControlView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            playerControlView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
-            playerControlView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-            playerControlView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            playerControlView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+            playerControlView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            playerControlView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            playerControlView.topAnchor.constraint(equalTo: view.topAnchor),
+            playerControlView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
     
@@ -260,8 +274,12 @@ class CustomPlayerViewController: UIViewController {
         }
     }
     
+    /// The last player item playback end.
     @objc func didPlaybackEnd() {
         print("Play back end")
+        rotateDisplay(to: .portrait)
+        presentingViewController?.dismiss(animated: true, completion: nil)
+        dismiss(animated: true, completion: nil)
     }
     
     /// Set selected audio track to current player item.
@@ -368,15 +386,20 @@ class CustomPlayerViewController: UIViewController {
         UIView.animate(withDuration: 0.3, delay: delay, options: .curveEaseOut) {
             self.screenLockedView.uiPropertiesAlpha(1)
         }
-        
-        UIView.animate(withDuration: 0.3, delay: delay + seconds, options: .curveEaseOut) {
-            self.screenLockedView.uiPropertiesAlpha(0)
-        }
-        
+                
         Timer.scheduledTimer(withTimeInterval: delay + seconds + 0.6, repeats: false) {[weak self] _ in
             guard let self = self else { return }
             self.screenLockedView.uiPropertiesIsHidden(isHidden: true)
         }
+    }
+    
+    ///Add observer UIScreen.brightnessDidChangeNotification
+    private func observeScreenBrightness() {
+        NotificationCenter.default.addObserver(self, selector: #selector(updateBrightnessSlider), name: UIScreen.brightnessDidChangeNotification, object: nil)
+    }
+    
+    @objc func updateBrightnessSlider() {
+        playerControlView.updateBrightnessSliderValue()
     }
     
 }
@@ -537,7 +560,16 @@ extension CustomPlayerViewController: CustomPlayerControlDelegate {
         subtitleAudioViewController.delegate = self
         present(subtitleAudioViewController, animated: true, completion: nil)
     }
-
+    
+    func dismissCustomPlayerViewController(_ playerControlview: PlayerControlView) {
+        rotateDisplay(to: .portrait)
+        dismiss(animated: true, completion: nil)
+    }
+    
+    func adjustBrightness(_ playerControlview: PlayerControlView, _ sliderValue: Double) {
+        UIScreen.main.brightness = CGFloat(sliderValue)
+    }
+    
 }
 
 // MARK: - CheckNetWorkProtocol
