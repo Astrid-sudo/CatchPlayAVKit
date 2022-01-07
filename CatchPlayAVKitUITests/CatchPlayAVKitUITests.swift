@@ -22,21 +22,80 @@ class CatchPlayAVKitUITests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
-    func testExample() throws {
-        // UI tests must launch the application that they test.
+    func testTapPlayOnLaunchPage() throws {
         let app = XCUIApplication()
         app.launch()
-
-        // Use recording to get started writing UI tests.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+        LaunchPage(app).presentPlayerPage()
+        XCTAssertTrue(PlayerPage(app).playerPlayButton.exists)
+    }
+    
+    func testTapDismissButtonBackToLaunchPage() throws {
+        let app = XCUIApplication()
+        app.launch()
+        LaunchPage(app).presentPlayerPage()
+        PlayerPage(app).dismissButton.tap()
+        XCTAssertTrue(LaunchPage(app).playButton.exists)
+    }
+    
+    func testLockScreen() throws {
+        let app = XCUIApplication()
+        app.launch()
+        LaunchPage(app).presentPlayerPage()
+        PlayerPage(app).lockButton.tap()
+        XCTAssertFalse(PlayerPage(app).playerPlayButton.exists)
+    }
+    
+    func testUnlockScreen() {
+        let app = XCUIApplication()
+        app.launch()
+        LaunchPage(app).presentPlayerPage()
+        PlayerPage(app).lockButton.tap()
+        PlayerPage(app).unlockButton.tap()
+        XCTAssertTrue(PlayerPage(app).playerPlayButton.exists)
+    }
+    
+    func testPlayerControlAutoHide() {
+        let app = XCUIApplication()
+        app.launch()
+        LaunchPage(app).presentPlayerPage()
+        PlayerPage(app).playerPlayButton.tap()
+        sleep(5)
+        XCTAssertFalse(PlayerPage(app).playerPlayButton.exists)
+    }
+    
+    func testTapAudioSubtitleButton() {
+        let app = XCUIApplication()
+        app.launch()
+        LaunchPage(app).presentPlayerPage()
+        PlayerPage(app).subtitleAudioButton.tap()
+        XCTAssertTrue(SubtitleAudioPage(app).audioTableView.exists)
     }
 
-    func testLaunchPerformance() throws {
-        if #available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 7.0, *) {
-            // This measures how long it takes to launch your application.
-            measure(metrics: [XCTApplicationLaunchMetric()]) {
-                XCUIApplication().launch()
-            }
-        }
+}
+
+class Page {
+    var app: XCUIApplication
+    required init(_ app: XCUIApplication) {
+        self.app = app
     }
 }
+
+class LaunchPage: Page {
+    lazy var playButton = app.buttons["play"].firstMatch
+    func presentPlayerPage() {
+        playButton.tap()
+    }
+}
+
+class PlayerPage: Page {
+    lazy var playerPlayButton = app.buttons["playImageButton"].firstMatch
+    lazy var lockButton = app.buttons["lock"].firstMatch
+    lazy var unlockButton = app.buttons["unlockButton"].firstMatch
+    lazy var dismissButton = app.buttons["dismissButton"].firstMatch
+    lazy var subtitleAudioButton = app.buttons["Subtitle/Audio"].firstMatch
+}
+
+class SubtitleAudioPage: Page {
+    lazy var audioTableView = app.tables["audioTableView"].firstMatch
+}
+

@@ -26,19 +26,51 @@ enum PlayButtonType {
     }
 }
 
-protocol CustomPlayerControlDelegate: AnyObject {
-    func togglePlay(_ playerControlview: PlayerControlView)
-    func slideToTime(_ playerControlview: PlayerControlView,_ sliderValue: Double)
+enum PlayerControlViewTapType {
+    case togglePlay
+    case jumpToTime(JumpTimeType)
+    case adjustSpeed(SpeedButtonType)
+    case proceedNextItem
+    case hidePlayerControl
+    case lockScreen
+    case showAudioSubtitlePage
+    case dismissCustomPlayerViewController
+}
+
+enum PlayerControlViewSliderEventType {
+    case progressValueChange(_ sliderValue: Float)
+    case progressTouchEnd(_ sliderValue: Float)
+    case brightnessValueChange(_ sliderValue: Float)
+}
+
+enum SpeedButtonType {
+    case slow
+    case normal
+    case fast
+    
+    var speedRate: Float {
+        switch self {
+        case .slow:
+            return 0.5
+            
+        case .normal:
+            return 1
+            
+        case .fast:
+            return 1.5
+        }
+    }
+}
+
+protocol PlayerControlViewDelegate: AnyObject {
+    
+    func handleTap(_ playerControlview: PlayerControlView,
+                   tapType: PlayerControlViewTapType)
+    
+    func handleSliderEvent(_ playerControlview: PlayerControlView,
+                           sliderEventType: PlayerControlViewSliderEventType)
+    
     func pauseToSeek(_ playerControlview: PlayerControlView)
-    func sliderTouchEnded(_ playerControlview: PlayerControlView,_ sliderValue: Double)
-    func jumpToTime(_ playerControlview: PlayerControlView, _ jumpTimeType: JumpTimeType)
-    func adjustSpeed(_ playerControlview: PlayerControlView, _ playSpeedRate: Float)
-    func proceedNextPlayerItem(_ playerControlview: PlayerControlView)
-    func handleTapGesture(_ playerControlview: PlayerControlView)
-    func lockScreen(_ playerControlview: PlayerControlView)
-    func showAudioSubtitleSelection(_ playerControlview: PlayerControlView)
-    func dismissCustomPlayerViewController(_ playerControlview: PlayerControlView)
-    func adjustBrightness(_ playerControlview: PlayerControlView,_ sliderValue: Double)
 }
 
 class PlayerControlView: UIView {
@@ -74,7 +106,7 @@ class PlayerControlView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    weak var delegate: CustomPlayerControlDelegate?
+    weak var delegate: PlayerControlViewDelegate?
     
     // MARK: - UI properties
     
@@ -99,6 +131,7 @@ class PlayerControlView: UIView {
         button.setImage(bigImage, for: .normal)
         button.tintColor = .white
         button.addTarget(self, action: #selector(dismissCustomPlayerViewController), for: .touchUpInside)
+        button.accessibilityIdentifier = Constant.dismissButton
         return button
     }()
     
@@ -126,6 +159,7 @@ class PlayerControlView: UIView {
         button.setImage(bigImage, for: .normal)
         button.tintColor = .white
         button.addTarget(self, action: #selector(togglePlay), for: .touchUpInside)
+        button.accessibilityIdentifier = Constant.playImageButton
         return button
     }()
     
@@ -186,7 +220,7 @@ class PlayerControlView: UIView {
         return label
     }()
     
-    private lazy var slowSpeedButton: UIButton = {
+    private(set) lazy var slowSpeedButton: UIButton = {
         let speedImage = UIImage(systemName: Constant.speedometer)
         let button = UIButton()
         button.setImage(speedImage, for: .normal)
@@ -199,7 +233,7 @@ class PlayerControlView: UIView {
         return button
     }()
     
-    private lazy var normalSpeedButton: UIButton = {
+    private(set) lazy var normalSpeedButton: UIButton = {
         let speedImage = UIImage(systemName: Constant.speedometer)
         let button = UIButton()
         button.setImage(speedImage, for: .normal)
@@ -212,7 +246,7 @@ class PlayerControlView: UIView {
         return button
     }()
     
-    private lazy var fastSpeedButton: UIButton = {
+    private(set) lazy var fastSpeedButton: UIButton = {
         let speedImage = UIImage(systemName: Constant.speedometer)
         let button = UIButton()
         button.setImage(speedImage, for: .normal)
@@ -287,54 +321,55 @@ class PlayerControlView: UIView {
     }()
     
     private lazy var tapGesture: UITapGestureRecognizer = {
-        let gesture = UITapGestureRecognizer(target: self, action: #selector(tapAction))
+        let gesture = UITapGestureRecognizer(target: self, action: #selector(hidePlayerControl))
         return gesture
     }()
     
-    // MARK: - player method
+    // MARK: - sender method
     
     @objc func togglePlay() {
-        delegate?.togglePlay(self)
+        delegate?.handleTap(self, tapType: .togglePlay)
     }
     
     @objc func goforward() {
-        delegate?.jumpToTime(self, .forward(15))
+        delegate?.handleTap(self, tapType: .jumpToTime(.forward(15)))
     }
     
     @objc func gobackward() {
-        delegate?.jumpToTime(self, .backward(15))
+        delegate?.handleTap(self, tapType: .jumpToTime(.backward(15)))
     }
     
     @objc func adjustSpeed(button: UIButton) {
+        switch button {
         
-        if button == slowSpeedButton {
-            delegate?.adjustSpeed(self, 0.5)
-        }
+        case slowSpeedButton:
+            delegate?.handleTap(self, tapType: .adjustSpeed(.slow))
         
-        if button == normalSpeedButton {
-            delegate?.adjustSpeed(self, 1)
-        }
+        case normalSpeedButton:
+            delegate?.handleTap(self, tapType: .adjustSpeed(.normal))
         
-        if button == fastSpeedButton {
-            delegate?.adjustSpeed(self, 1.5)
+        case fastSpeedButton:
+            delegate?.handleTap(self, tapType: .adjustSpeed(.fast))
+        
+        default:
+            break
         }
-
     }
     
     @objc func lockScreen() {
-        delegate?.lockScreen(self)
+        delegate?.handleTap(self, tapType: .lockScreen)
     }
     
     @objc func setAudioSubtitle() {
-        delegate?.showAudioSubtitleSelection(self)
+        delegate?.handleTap(self, tapType: .showAudioSubtitlePage)
     }
     
     @objc func goNextEpisode() {
-        delegate?.proceedNextPlayerItem(self)
+        delegate?.handleTap(self, tapType: .proceedNextItem)
     }
     
     @objc func progressSliderValueChanged() {
-        delegate?.slideToTime(self, Double(progressSlider.value))
+        delegate?.handleSliderEvent(self, sliderEventType: .progressValueChange(progressSlider.value))
     }
     
     @objc func progressSliderTouchBegan() {
@@ -342,15 +377,19 @@ class PlayerControlView: UIView {
     }
     
     @objc func progressSliderTouchEnded() {
-        delegate?.sliderTouchEnded(self, Double(progressSlider.value))
+        delegate?.handleSliderEvent(self, sliderEventType: .progressTouchEnd(progressSlider.value))
     }
     
     @objc func adjustBrightness() {
-        delegate?.adjustBrightness(self, Double(brightnessSlider.value))
+        delegate?.handleSliderEvent(self, sliderEventType: .brightnessValueChange(brightnessSlider.value))
     }
     
-    @objc func tapAction() {
-        delegate?.handleTapGesture(self)
+    @objc func hidePlayerControl() {
+        delegate?.handleTap(self, tapType: .hidePlayerControl)
+    }
+    
+    @objc func dismissCustomPlayerViewController() {
+        delegate?.handleTap(self, tapType: .dismissCustomPlayerViewController)
     }
     
     // MARK: - UI method
@@ -476,29 +515,11 @@ class PlayerControlView: UIView {
     }
     
     private func setCurrentTimeLabel(_ currentTime: Float) {
-        currentTimeLabel.text = floatToTimecodeString(seconds: currentTime) + " /"
+        currentTimeLabel.text = TimeManager.floatToTimecodeString(seconds: currentTime) + " /"
     }
     
     private func setDrationLabel(_ duration: Float) {
-        durationLabel.text = floatToTimecodeString(seconds: duration)
-    }
-    
-    // MARK: - method
-    
-    func floatToTimecodeString(seconds: Float) -> String {
-        guard !(seconds.isNaN || seconds.isInfinite) else {
-            return "00:00"
-        }
-        let time = Int(ceil(seconds))
-        let hours = time / 3600
-        let minutes = time / 60
-        let seconds = time % 60
-        let timecodeString = hours == .zero ? String(format: "%02ld:%02ld", minutes, seconds) : String(format: "%02ld:%02ld:%02ld", hours, minutes, seconds)
-        return timecodeString
-    }
-    
-    @objc func dismissCustomPlayerViewController() {
-        delegate?.dismissCustomPlayerViewController(self)
+        durationLabel.text = TimeManager.floatToTimecodeString(seconds: duration)
     }
     
     // MARK: - method for CustomPlayViewController
@@ -536,28 +557,11 @@ class PlayerControlView: UIView {
         setDrationLabel(duration)
     }
     
-    func setSpeedButtonColor(selecedSpeed: Float) {
-        
-        var selectedButton: UIButton?
-        
-        if selecedSpeed == 0.5 {
-            selectedButton = slowSpeedButton
-        }
-        
-        if selecedSpeed == 1 {
-            selectedButton = normalSpeedButton
-        }
-        
-        if selecedSpeed == 1.5 {
-            selectedButton = fastSpeedButton
-        }
-        
-        guard let selectedButton = selectedButton else { return }
-        
-        for button in speedButtons {
+    func setSpeedButtonColor(selecedSpeedButton: UIButton?) {
+        guard let selectedButton = selecedSpeedButton else { return }
+        speedButtons.forEach { button in
             button.tintColor = .white
             button.setTitleColor(.white, for: .normal)
-
             if button == selectedButton {
                 button.tintColor = .orange
                 button.setTitleColor(.orange, for: .normal)

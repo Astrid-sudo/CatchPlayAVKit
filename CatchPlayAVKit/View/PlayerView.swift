@@ -9,6 +9,16 @@ protocol PlayerViewDelegate: AnyObject {
     func handleTapGesture(from playerView: PlayerView)
 }
 
+enum PlayerState {
+    case unknow
+    case readyToPlay
+    case playing
+    case buffering
+    case failed
+    case pause
+    case ended
+}
+
 import AVKit
 
 /// A view that displays the visual contents of a player object.
@@ -44,7 +54,7 @@ class PlayerView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    @objc func tapAction() {
+    @objc private func tapAction() {
         delegate?.handleTapGesture(from: self)
     }
 

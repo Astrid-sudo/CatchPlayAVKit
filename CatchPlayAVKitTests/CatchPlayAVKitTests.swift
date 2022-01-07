@@ -7,27 +7,70 @@
 
 import XCTest
 @testable import CatchPlayAVKit
+import CoreMedia
 
 class CatchPlayAVKitTests: XCTestCase {
-
+    
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+        try super.setUpWithError()
     }
 
     override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+        try super.tearDownWithError()
     }
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+    // seek time is longer than duration.
+    func testGetValidSeekTimeForward() {
+        // arrange
+        let duration = CMTime(seconds: 120, preferredTimescale: 1)
+        let currentTime = CMTime(seconds: 119, preferredTimescale: 1)
+        let jumpTimeType = JumpTimeType.forward(15)
+        
+        // act
+        let validSeekTime = TimeManager.getValidSeekTime(duration: duration, currentTime: currentTime, jumpTimeType: jumpTimeType)
+        
+        // assert
+        XCTAssertTrue(validSeekTime == duration)
     }
-
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
+    
+    // seek time is shorter than duration.
+    func testGetValidSeekTimeBackward() {
+        // arrange
+        let duration = CMTime(seconds: 120, preferredTimescale: 1)
+        let currentTime = CMTime(seconds: 0, preferredTimescale: 1)
+        let jumpTimeType = JumpTimeType.backward(15)
+        
+        // act
+        let validSeekTime = TimeManager.getValidSeekTime(duration: duration, currentTime: currentTime, jumpTimeType: jumpTimeType)
+        
+        // assert
+        XCTAssertTrue(validSeekTime == .zero)
+    }
+    
+    // seek time is within duration.
+    func testGetValidSeekTime() {
+        // arrange
+        let duration = CMTime(seconds: 120, preferredTimescale: 1)
+        let currentTime = CMTime(seconds: 0, preferredTimescale: 1)
+        let jumpTimeType = JumpTimeType.forward(15)
+        
+        // act
+        let validSeekTime = TimeManager.getValidSeekTime(duration: duration, currentTime: currentTime, jumpTimeType: jumpTimeType)
+        
+        // assert
+        XCTAssertTrue(validSeekTime == CMTime(seconds: 15, preferredTimescale: 1))
+    }
+    
+    func testGetCMTime() {
+        // arrange
+        let sliderValue = 0.5
+        let duration = CMTime(seconds: 120, preferredTimescale: 1)
+        
+        // act
+        let returnTime = TimeManager.getCMTime(from: sliderValue, duration: duration)
+        
+        // assert
+        XCTAssertTrue(returnTime == CMTime(seconds: 60, preferredTimescale: 1))
     }
 
 }

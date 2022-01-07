@@ -9,6 +9,12 @@ import AVKit
 
 class LaunchPageViewController: UIViewController {
     
+    // MARK: - properties
+    
+    private(set) lazy var networkManager: NetworkManager = {
+        return NetworkManager()
+    }()
+
     // MARK: - UI Properties
     
     private lazy var button: UIButton = {
@@ -19,12 +25,16 @@ class LaunchPageViewController: UIViewController {
         return button
     }()
     
+    var noNetworkAlert: UIAlertController?
+    
     // MARK: - life cycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
         setViewBackgroundcolor()
         setButton()
+        checkNetwork(connectionHandler: connectionHandler,
+                     noConnectionHandler: noConnectionHandler)
     }
     
     // MARK: - UI method
@@ -44,7 +54,7 @@ class LaunchPageViewController: UIViewController {
     
     // MARK: - method
     
-    @objc func playVideo() {
+    @objc private func playVideo() {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         guard let customPlayerViewController = storyboard.instantiateViewController(withIdentifier: CustomPlayerViewController.reuseIdentifier) as? CustomPlayerViewController else { return }
         rotateDisplay(to: .landscape)
@@ -52,5 +62,26 @@ class LaunchPageViewController: UIViewController {
     }
     
 }
+
+// MARK: - NetworkCheckable
+
+extension LaunchPageViewController: NetworkCheckable {
+    
+    private func connectionHandler() {
+        DispatchQueue.main.async {
+            if let noNetworkAlert = self.noNetworkAlert {
+                self.dismissAlert(noNetworkAlert, completion: nil)
+            }
+        }
+    }
+    
+    private func noConnectionHandler() {
+        DispatchQueue.main.async {
+            self.noNetworkAlert = self.popAlert(title: Constant.networkAlertTitle, message: Constant.networkAlertMessage)
+        }
+    }
+    
+}
+
 
 
