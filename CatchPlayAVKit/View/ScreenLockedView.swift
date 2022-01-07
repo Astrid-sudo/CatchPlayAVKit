@@ -88,10 +88,6 @@ class ScreenLockedView: UIView {
     
     // MARK: - method for customPlayerViewController
     
-    func uiPropertiesAlpha(_ alpha: CGFloat ) {
-//        stackView.alpha = alpha
-    }
-    
     func uiPropertiesIsHidden(isHidden: Bool) {
         stackView.isHidden = isHidden
     }

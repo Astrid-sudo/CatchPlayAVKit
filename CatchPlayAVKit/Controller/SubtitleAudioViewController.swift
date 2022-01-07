@@ -38,9 +38,9 @@ class SubtitleAudioViewController: UIViewController {
         return UIScreen.main.bounds.width
     }
     
-    private var selectedAudioIndex: Int?
+    var selectedAudioIndex: Int?
     
-    private var selectedSubtitleIndex: Int?
+    var selectedSubtitleIndex: Int?
     
     weak var delegate: SubtitleAudioSelectDelegate?
     
