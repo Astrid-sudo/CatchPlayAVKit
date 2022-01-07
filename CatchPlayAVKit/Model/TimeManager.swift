@@ -17,7 +17,8 @@ struct TimeManager {
         guard !(seconds.isNaN || seconds.isInfinite) else {
             return "00:00"
         }
-        let time = Int(ceil(seconds))
+        let time = Int(floor(seconds))
+
         let hours = time / 3600
         let minutes = time / 60
         let seconds = time % 60
