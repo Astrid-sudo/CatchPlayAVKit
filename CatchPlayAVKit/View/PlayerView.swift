@@ -6,7 +6,7 @@
 //
 
 protocol PlayerViewDelegate: AnyObject {
-    func handleTapGesture(from playerView: PlayerView)
+    func showPlayerControl(from playerView: PlayerView)
 }
 
 enum PlayerState {
@@ -40,7 +40,7 @@ class PlayerView: UIView {
     private var playerLayer: AVPlayerLayer { layer as! AVPlayerLayer }
     
     private lazy var tapGesture: UITapGestureRecognizer = {
-        let gesture = UITapGestureRecognizer(target: self, action: #selector(tapAction))
+        let gesture = UITapGestureRecognizer(target: self, action: #selector(showPlayerControl))
         return gesture
     }()
 
@@ -54,8 +54,8 @@ class PlayerView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    @objc private func tapAction() {
-        delegate?.handleTapGesture(from: self)
+    @objc private func showPlayerControl() {
+        delegate?.showPlayerControl(from: self)
     }
 
 }
