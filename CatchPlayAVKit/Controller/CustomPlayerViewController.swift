@@ -62,7 +62,9 @@ class CustomPlayerViewController: UIViewController {
     }
     
     private var mediaOption: MediaOption?
-    
+    private var audioSlectedIndex: Int?
+    private var subTitleSlectedIndex: Int?
+
     private var player: AVQueuePlayer? {
         playerView.player as? AVQueuePlayer
     }
@@ -247,10 +249,12 @@ class CustomPlayerViewController: UIViewController {
         guard let player = player,
               let itemsInPlayer = itemsInPlayer,
               let currentItem = player.currentItem else { return }
+        presentedViewController?.dismiss(animated: true, completion: nil)
+        subTitleSlectedIndex = nil
+        audioSlectedIndex = nil
         
         if currentItem == itemsInPlayer.last {
             rotateDisplay(to: .portrait)
-            presentingViewController?.dismiss(animated: true, completion: nil)
             dismiss(animated: true, completion: nil)
             return
         }
@@ -369,9 +373,6 @@ class CustomPlayerViewController: UIViewController {
     ///   - seconds: The duration screen locked view keep visible on screen.
     private func showScreenLockedPanel(delay: TimeInterval = 0, for seconds: TimeInterval = 3) {
         screenLockedView.uiPropertiesIsHidden(isHidden: false)
-        UIView.animate(withDuration: 0.3, delay: delay, options: .curveEaseOut) {
-            self.screenLockedView.uiPropertiesAlpha(1)
-        }
         
         Timer.scheduledTimer(withTimeInterval: delay + seconds + 0.6, repeats: false) {[weak self] _ in
             guard let self = self else { return }
@@ -522,6 +523,8 @@ class CustomPlayerViewController: UIViewController {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         guard let subtitleAudioViewController = storyboard.instantiateViewController(withIdentifier: SubtitleAudioViewController.reuseIdentifier) as? SubtitleAudioViewController else { return }
         subtitleAudioViewController.mediaOption = mediaOption
+        subtitleAudioViewController.selectedAudioIndex = audioSlectedIndex
+        subtitleAudioViewController.selectedSubtitleIndex = subTitleSlectedIndex
         subtitleAudioViewController.delegate = self
         present(subtitleAudioViewController, animated: true, completion: nil)
     }
@@ -649,11 +652,13 @@ extension CustomPlayerViewController: SubtitleAudioSelectDelegate {
     /// Recieve the subtitle index from subtitleAudioViewController, and set to current player item.
     func selectSubtitle(_ subtitleAudioViewController: SubtitleAudioViewController, index: Int) {
         selectMediaOption(mediaOptionType: .subtitle, index: index)
+        subTitleSlectedIndex = index
     }
     
     /// Recieve the audio index from subtitleAudioViewController, and set to current player item.
     func selectAudio(_ subtitleAudioViewController: SubtitleAudioViewController, index: Int) {
         selectMediaOption(mediaOptionType: .audio, index: index)
+        audioSlectedIndex = index
     }
     
 }
