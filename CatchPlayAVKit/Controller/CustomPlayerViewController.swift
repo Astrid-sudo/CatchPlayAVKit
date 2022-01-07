@@ -430,17 +430,17 @@ class CustomPlayerViewController: UIViewController {
     
     private func togglePlay() {
         switch playerView.playerState {
+        
         case .buffering:
             playPlayer()
-            print("buffering")
+        
         case .unknow, .pause, .readyToPlay:
             playPlayer()
-            print("unknow.pause.readyToPlay")
+        
         case .playing:
             pausePlayer()
-            print("playing")
+        
         default:
-            print("break")
             break
         }
     }
@@ -508,6 +508,7 @@ class CustomPlayerViewController: UIViewController {
             return
         }
         player.advanceToNextItem()
+        currentTime = .zero
         observePlayerItem(previousPlayerItem: currentItem, currentPlayerItem: theLastItem)
     }
     
