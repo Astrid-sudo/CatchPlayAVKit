@@ -11,7 +11,7 @@ enum MediaOptionType {
     case audio
     case subtitle
     
-    var aVMediaCharacteristic: AVMediaCharacteristic {
+    var avMediaCharacteristic: AVMediaCharacteristic {
         switch self {
         case .audio:
             return AVMediaCharacteristic.audible
@@ -22,8 +22,8 @@ enum MediaOptionType {
 }
 
 struct MediaOption {
-    var aVMediaCharacteristicAudible: [DisplayNameLocale]
-    var aVMediaCharacteristicLegible: [DisplayNameLocale]
+    var avMediaCharacteristicAudible: [DisplayNameLocale]
+    var avMediaCharacteristicLegible: [DisplayNameLocale]
 }
 
 struct DisplayNameLocale {

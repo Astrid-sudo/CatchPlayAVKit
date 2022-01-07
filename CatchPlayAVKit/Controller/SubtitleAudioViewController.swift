@@ -19,29 +19,31 @@ class SubtitleAudioViewController: UIViewController {
     var mediaOption: MediaOption?
     
     private var audioOptions: [String]? {
-        didSet{
+        didSet {
             audioTableView.reloadData()
         }
     }
+    
     private var subtitleOptions: [String]? {
         didSet {
             subtitleTableView.reloadData()
         }
     }
     
-    var screenHeight: CGFloat {
+    private var screenHeight: CGFloat {
         return UIScreen.main.bounds.height
     }
     
-    var screenWidth: CGFloat {
+    private var screenWidth: CGFloat {
         return UIScreen.main.bounds.width
     }
     
     private var selectedAudioIndex: Int?
+    
     private var selectedSubtitleIndex: Int?
     
     weak var delegate: SubtitleAudioSelectDelegate?
-
+    
     // MARK: - UI properties
     
     private lazy var audioTableView: UITableView = {
@@ -97,57 +99,18 @@ class SubtitleAudioViewController: UIViewController {
         setStackView()
     }
     
-    // MARK: - UI method
-    
-    private func setDismissButton() {
-        view.addSubview(dismissButton)
-        dismissButton.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            dismissButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            dismissButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 16)
-        ])
-    }
-    
-    private func setAudioTableView() {
-        audioTableView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            audioTableView.heightAnchor.constraint(equalToConstant: screenHeight - 32),
-            audioTableView.widthAnchor.constraint(equalToConstant: (screenWidth - 150)/2)
-        ])
-    }
-    
-    private func setSubtitleTableView() {
-        subtitleTableView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            subtitleTableView.heightAnchor.constraint(equalToConstant: screenHeight - 32),
-            subtitleTableView.widthAnchor.constraint(equalToConstant: (screenWidth - 150)/2)
-        ])
-    }
-    
-    private func setStackView() {
-        view.addSubview(stackView)
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            stackView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
-            stackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
-            stackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
-            stackView.trailingAnchor.constraint(equalTo: dismissButton.leadingAnchor, constant: -16)
-        ])
-        stackView.addArrangedSubview(audioTableView)
-        stackView.addArrangedSubview(subtitleTableView)
-    }
-    
     // MARK: - method
     
     private func parseMediaOption() {
         guard let mediaOption = mediaOption else { return }
-        audioOptions = mediaOption.aVMediaCharacteristicAudible.map({$0.displayName})
-        subtitleOptions = mediaOption.aVMediaCharacteristicLegible.map({$0.displayName})
+        audioOptions = mediaOption.avMediaCharacteristicAudible.map({$0.displayName})
+        subtitleOptions = mediaOption.avMediaCharacteristicLegible.map({$0.displayName})
     }
     
     @objc func dismissSubtitleAudioViewController() {
         dismiss(animated: true, completion: nil)
     }
+
 }
 
 // MARK: - UITableViewDataSource
@@ -221,6 +184,50 @@ extension SubtitleAudioViewController: UITableViewDelegate {
             delegate?.selectSubtitle(self, index: indexPath.row)
             subtitleTableView.reloadData()
         }
+    }
+    
+}
+
+// MARK: - UI method
+
+extension SubtitleAudioViewController {
+    
+    private func setDismissButton() {
+        view.addSubview(dismissButton)
+        dismissButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            dismissButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            dismissButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 16)
+        ])
+    }
+    
+    private func setAudioTableView() {
+        audioTableView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            audioTableView.heightAnchor.constraint(equalToConstant: screenHeight - 32),
+            audioTableView.widthAnchor.constraint(equalToConstant: (screenWidth - 150)/2)
+        ])
+    }
+    
+    private func setSubtitleTableView() {
+        subtitleTableView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            subtitleTableView.heightAnchor.constraint(equalToConstant: screenHeight - 32),
+            subtitleTableView.widthAnchor.constraint(equalToConstant: (screenWidth - 150)/2)
+        ])
+    }
+    
+    private func setStackView() {
+        view.addSubview(stackView)
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            stackView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            stackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            stackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            stackView.trailingAnchor.constraint(equalTo: dismissButton.leadingAnchor, constant: -16)
+        ])
+        stackView.addArrangedSubview(audioTableView)
+        stackView.addArrangedSubview(subtitleTableView)
     }
     
 }

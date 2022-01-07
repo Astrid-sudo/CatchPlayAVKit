@@ -54,7 +54,7 @@ class PlayerView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    @objc func tapAction() {
+    @objc private func tapAction() {
         delegate?.handleTapGesture(from: self)
     }
 

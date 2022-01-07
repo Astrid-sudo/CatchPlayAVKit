@@ -28,6 +28,7 @@
 		56933F53278551EF0087C67A /* SubtitleAudioViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56933F52278551EF0087C67A /* SubtitleAudioViewController.swift */; };
 		56933F552785535A0087C67A /* UITableViewCell+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56933F542785535A0087C67A /* UITableViewCell+Extension.swift */; };
 		56933F5C27859C8E0087C67A /* LaunchPageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56933F5B27859C8E0087C67A /* LaunchPageViewController.swift */; };
+		56B3117E2787CAB900E05F18 /* TimeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B3117D2787CAB900E05F18 /* TimeManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -73,6 +74,7 @@
 		56933F52278551EF0087C67A /* SubtitleAudioViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleAudioViewController.swift; sourceTree = "<group>"; };
 		56933F542785535A0087C67A /* UITableViewCell+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UITableViewCell+Extension.swift"; sourceTree = "<group>"; };
 		56933F5B27859C8E0087C67A /* LaunchPageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchPageViewController.swift; sourceTree = "<group>"; };
+		56B3117D2787CAB900E05F18 /* TimeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -182,6 +184,7 @@
 				566047632784832D0072FA66 /* CheckNetWorkProtocol.swift */,
 				566047652784849E0072FA66 /* AlertProtocol.swift */,
 				56933F5027854A790087C67A /* MediaOption.swift */,
+				56B3117D2787CAB900E05F18 /* TimeManager.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -332,6 +335,7 @@
 				5660475E27843D6C0072FA66 /* Constant.swift in Sources */,
 				56933F53278551EF0087C67A /* SubtitleAudioViewController.swift in Sources */,
 				5660472B278437D40072FA66 /* SceneDelegate.swift in Sources */,
+				56B3117E2787CAB900E05F18 /* TimeManager.swift in Sources */,
 				5660475B27843D060072FA66 /* PlayerView.swift in Sources */,
 				56933F5C27859C8E0087C67A /* LaunchPageViewController.swift in Sources */,
 				56933F552785535A0087C67A /* UITableViewCell+Extension.swift in Sources */,
@@ -447,7 +451,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -502,7 +506,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;

@@ -28,16 +28,27 @@ enum PlayButtonType {
 
 protocol PlayerControlViewDelegate: AnyObject {
     func togglePlay(_ playerControlview: PlayerControlView)
+    
     func slideToTime(_ playerControlview: PlayerControlView,_ sliderValue: Double)
+    
     func pauseToSeek(_ playerControlview: PlayerControlView)
+    
     func sliderTouchEnded(_ playerControlview: PlayerControlView,_ sliderValue: Double)
+    
     func jumpToTime(_ playerControlview: PlayerControlView, _ jumpTimeType: JumpTimeType)
+    
     func adjustSpeed(_ playerControlview: PlayerControlView, _ playSpeedRate: Float)
+    
     func proceedNextPlayerItem(_ playerControlview: PlayerControlView)
+    
     func handleTapGesture(_ playerControlview: PlayerControlView)
+    
     func lockScreen(_ playerControlview: PlayerControlView)
+    
     func showAudioSubtitleSelection(_ playerControlview: PlayerControlView)
+    
     func dismissCustomPlayerViewController(_ playerControlview: PlayerControlView)
+    
     func adjustBrightness(_ playerControlview: PlayerControlView,_ sliderValue: Double)
 }
 
@@ -188,7 +199,7 @@ class PlayerControlView: UIView {
         return label
     }()
     
-    private lazy var slowSpeedButton: UIButton = {
+    private(set) lazy var slowSpeedButton: UIButton = {
         let speedImage = UIImage(systemName: Constant.speedometer)
         let button = UIButton()
         button.setImage(speedImage, for: .normal)
@@ -201,7 +212,7 @@ class PlayerControlView: UIView {
         return button
     }()
     
-    private lazy var normalSpeedButton: UIButton = {
+    private(set) lazy var normalSpeedButton: UIButton = {
         let speedImage = UIImage(systemName: Constant.speedometer)
         let button = UIButton()
         button.setImage(speedImage, for: .normal)
@@ -214,7 +225,7 @@ class PlayerControlView: UIView {
         return button
     }()
     
-    private lazy var fastSpeedButton: UIButton = {
+    private(set) lazy var fastSpeedButton: UIButton = {
         let speedImage = UIImage(systemName: Constant.speedometer)
         let button = UIButton()
         button.setImage(speedImage, for: .normal)
@@ -308,19 +319,16 @@ class PlayerControlView: UIView {
     }
     
     @objc func adjustSpeed(button: UIButton) {
-        
-        if button == slowSpeedButton {
+        switch button {
+        case slowSpeedButton:
             delegate?.adjustSpeed(self, 0.5)
-        }
-        
-        if button == normalSpeedButton {
+        case normalSpeedButton:
             delegate?.adjustSpeed(self, 1)
-        }
-        
-        if button == fastSpeedButton {
+        case fastSpeedButton:
             delegate?.adjustSpeed(self, 1.5)
+        default:
+            break
         }
-
     }
     
     @objc func lockScreen() {
@@ -478,26 +486,14 @@ class PlayerControlView: UIView {
     }
     
     private func setCurrentTimeLabel(_ currentTime: Float) {
-        currentTimeLabel.text = floatToTimecodeString(seconds: currentTime) + " /"
+        currentTimeLabel.text = TimeManager.floatToTimecodeString(seconds: currentTime) + " /"
     }
     
     private func setDrationLabel(_ duration: Float) {
-        durationLabel.text = floatToTimecodeString(seconds: duration)
+        durationLabel.text = TimeManager.floatToTimecodeString(seconds: duration)
     }
     
     // MARK: - method
-    
-    func floatToTimecodeString(seconds: Float) -> String {
-        guard !(seconds.isNaN || seconds.isInfinite) else {
-            return "00:00"
-        }
-        let time = Int(ceil(seconds))
-        let hours = time / 3600
-        let minutes = time / 60
-        let seconds = time % 60
-        let timecodeString = hours == .zero ? String(format: "%02ld:%02ld", minutes, seconds) : String(format: "%02ld:%02ld:%02ld", hours, minutes, seconds)
-        return timecodeString
-    }
     
     @objc func dismissCustomPlayerViewController() {
         delegate?.dismissCustomPlayerViewController(self)
@@ -538,28 +534,11 @@ class PlayerControlView: UIView {
         setDrationLabel(duration)
     }
     
-    func setSpeedButtonColor(selecedSpeed: Float) {
-        
-        var selectedButton: UIButton?
-        
-        if selecedSpeed == 0.5 {
-            selectedButton = slowSpeedButton
-        }
-        
-        if selecedSpeed == 1 {
-            selectedButton = normalSpeedButton
-        }
-        
-        if selecedSpeed == 1.5 {
-            selectedButton = fastSpeedButton
-        }
-        
-        guard let selectedButton = selectedButton else { return }
-        
-        for button in speedButtons {
+    func setSpeedButtonColor(selecedSpeedButton: UIButton?) {
+        guard let selectedButton = selecedSpeedButton else { return }
+        speedButtons.forEach { button in
             button.tintColor = .white
             button.setTitleColor(.white, for: .normal)
-
             if button == selectedButton {
                 button.tintColor = .orange
                 button.setTitleColor(.orange, for: .normal)

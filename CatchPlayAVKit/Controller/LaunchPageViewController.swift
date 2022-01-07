@@ -44,7 +44,7 @@ class LaunchPageViewController: UIViewController {
     
     // MARK: - method
     
-    @objc func playVideo() {
+    @objc private func playVideo() {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         guard let customPlayerViewController = storyboard.instantiateViewController(withIdentifier: CustomPlayerViewController.reuseIdentifier) as? CustomPlayerViewController else { return }
         rotateDisplay(to: .landscape)

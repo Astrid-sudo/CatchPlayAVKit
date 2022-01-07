@@ -8,19 +8,19 @@
 import UIKit
 
 extension UIViewController: AlertProtocol {}
-extension UIViewController: StoryboardID {}
+extension UIViewController: ReuseID {}
 extension UIViewController: DisplayOrientationProtocol {}
 
-protocol StoryboardID: ReuseID {}
-
 protocol ReuseID {}
+
 extension ReuseID {
     static var reuseIdentifier: String {
-            String(describing: self)
+        String(describing: self)
     }
 }
 
 protocol DisplayOrientationProtocol {}
+
 extension DisplayOrientationProtocol {
     
     func rotateDisplay(to orientation: UIInterfaceOrientationMask) {

@@ -7,8 +7,7 @@
 
 import UIKit
 
-protocol CellReuseID: ReuseID {}
+extension UITableViewCell: ReuseID {}
 
-extension UITableViewCell: CellReuseID {}
-extension UITableViewHeaderFooterView: CellReuseID {}
+extension UITableViewHeaderFooterView: ReuseID {}
 
