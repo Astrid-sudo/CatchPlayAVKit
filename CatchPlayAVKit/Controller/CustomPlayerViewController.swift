@@ -622,7 +622,7 @@ extension CustomPlayerViewController: NetworkCheckable {
 extension CustomPlayerViewController: PlayerViewDelegate {
     
     /// Show player control when user tap playerView.
-    func handleTapGesture(from playerView: PlayerView) {
+    func showPlayerControl(from playerView: PlayerView) {
         showPlayerControl()
         autoHidePlayerControl()
     }
@@ -634,7 +634,7 @@ extension CustomPlayerViewController: PlayerViewDelegate {
 extension CustomPlayerViewController: ScreenLockedViewDelegate {
     
     /// Show screen lock panel when user tap screenLockedView.
-    func handleTapGesture(from screenLockedView: ScreenLockedView) {
+    func showScreenLockPanel(from screenLockedView: ScreenLockedView) {
         showScreenLockedPanel()
     }
     

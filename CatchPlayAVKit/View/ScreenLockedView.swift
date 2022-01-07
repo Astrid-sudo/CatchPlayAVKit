@@ -8,7 +8,7 @@
 import UIKit
 
 protocol ScreenLockedViewDelegate: AnyObject {
-    func handleTapGesture(from screenLockedView: ScreenLockedView)
+    func showScreenLockPanel(from screenLockedView: ScreenLockedView)
     func unlockScreen(from screenLockedView: ScreenLockedView)
 }
 
@@ -59,7 +59,7 @@ class ScreenLockedView: UIView {
     }()
 
     private lazy var tapGesture: UITapGestureRecognizer = {
-        let gesture = UITapGestureRecognizer(target: self, action: #selector(tapAction))
+        let gesture = UITapGestureRecognizer(target: self, action: #selector(showScreenLockPanel))
         return gesture
     }()
     
@@ -82,8 +82,8 @@ class ScreenLockedView: UIView {
         delegate?.unlockScreen(from: self)
     }
     
-    @objc func tapAction() {
-        delegate?.handleTapGesture(from: self)
+    @objc func showScreenLockPanel() {
+        delegate?.showScreenLockPanel(from: self)
     }
     
     // MARK: - method for customPlayerViewController
