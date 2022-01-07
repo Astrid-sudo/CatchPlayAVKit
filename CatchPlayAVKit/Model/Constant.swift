@@ -8,13 +8,17 @@
 import UIKit
 
 struct Constant {
+    // MARK: - video source url
     
     static let sourceOne = "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8"
     static let sourceTwo = "http://devimages.apple.com.edgekey.net/streaming/examples/bipbop_16x9/bipbop_16x9_variant.m3u8"
+
+    // MARK: - alert Message
     
     static let networkAlertTitle = "無網路連線"
     static let networkAlertMessage = "請檢查您的網路連線"
     
+    // MARK: - SF Symbol
     static let play = "play"
     static let pause = "pause"
     static let sunMax = "sun.max"
@@ -29,7 +33,8 @@ struct Constant {
     static let lockCircleFill = "lock.circle.fill"
     static let xmarkCircle = "xmark.circle"
     static let circleFill = "circle.fill"
-    static let ok = "OK"
+    
+    // MARK: - title for UI
     
     static let speed = "Speed"
     static let lockScreen = "Lock screen"
@@ -39,13 +44,16 @@ struct Constant {
     static let tapLockerToUnlock = "Tap Locker To Unlock"
     static let audio = "Audio"
     static let subtitles = "Subtitles"
+    static let speedRate05 = "0.5x"
+    static let speedRate1 = "1x"
+    static let speedRate15 = "1.5x"
+
+    // MARK: - setting usage
     
     static let font = "PingFang TC"
     static let orientation = "orientation"
     
-    static let speedRate05 = "0.5x"
-    static let speedRate1 = "1x"
-    static let speedRate15 = "1.5x"
+    // MARK: - accessibilityIdentifier
     
     static let playImageButton = "playImageButton"
     static let unlockButton = "unlockButton"
