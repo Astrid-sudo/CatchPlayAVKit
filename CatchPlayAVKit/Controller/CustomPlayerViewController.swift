@@ -177,7 +177,6 @@ class CustomPlayerViewController: UIViewController {
                 self.bufferingForSeconds(playerItem: playerItem, player: player)
             }
         })
-        
         bufferTimer?.start()
     }
     
@@ -398,14 +397,66 @@ class CustomPlayerViewController: UIViewController {
         playerControlView.setSpeedButtonColor(selecedSpeedButton: button)
     }
 
-    
 }
 
 // MARK: - PlayerControlDelegate
 
 extension CustomPlayerViewController: PlayerControlViewDelegate {
+ 
+    func handleSliderEvent(_ playerControlview: PlayerControlView, sliderEventType: PlayerControlViewSliderEventType) {
+        
+        switch sliderEventType {
+            
+        case .progressValueChange(let sliderValue):
+            slideToTime(Double(sliderValue))
+        
+        case .progressTouchEnd(let sliderValue):
+            sliderTouchEnded(Double(sliderValue))
+        
+        case .brightnessValueChange(let sliderValue):
+            adjustBrightness(Double(sliderValue))
+        }
+    }
     
-    func togglePlay(_ playerControlview: PlayerControlView) {
+    
+    func handleTap(_ playerControlview: PlayerControlView, tapType: PlayerControlViewTapType) {
+        
+        switch tapType {
+        
+        case .togglePlay:
+            togglePlay()
+        
+        case .jumpToTime(let jumpTimeType):
+            jumpToTime(jumpTimeType)
+        
+        case .adjustSpeed(let speedButtonType):
+            adjustSpeed(speedButtonType)
+        
+        case .proceedNextItem:
+            proceedNextPlayerItem()
+        
+        case .hidePlayerControl:
+            hidePlayerControl()
+        
+        case .lockScreen:
+            lockScreen()
+        
+        case .showAudioSubtitlePage:
+            showAudioSubtitleSelection()
+        
+        case .dismissCustomPlayerViewController:
+            dismissCustomPlayerViewController()
+        }
+    }
+    
+    func pauseToSeek(_ playerControlview: PlayerControlView) {
+        playerView.player?.pause()
+        playerView.playerState = .pause
+        cancelAutoHidePlayerControl()
+    }
+    
+    
+    private func togglePlay() {
         
         switch playerView.playerState {
             
@@ -414,7 +465,7 @@ extension CustomPlayerViewController: PlayerControlViewDelegate {
             playerView.player?.rate = playSpeedRate
             autoHidePlayerControl()
             playerView.playerState = .playing
-            playerControlview.togglePlayButtonImage(.indicatorView)
+            playerControlView.togglePlayButtonImage(.indicatorView)
             addPeriodicTimeObserver()
             print("buffering")
             
@@ -423,8 +474,7 @@ extension CustomPlayerViewController: PlayerControlViewDelegate {
             playerView.player?.rate = playSpeedRate
             autoHidePlayerControl()
             playerView.playerState = .playing
-            
-            playerControlview.togglePlayButtonImage(.pause)
+            playerControlView.togglePlayButtonImage(.pause)
             addPeriodicTimeObserver()
             print("unknow.pause.readyToPlay")
             
@@ -432,7 +482,7 @@ extension CustomPlayerViewController: PlayerControlViewDelegate {
             playerView.player?.pause()
             playerView.playerState = .pause
             cancelAutoHidePlayerControl()
-            playerControlview.togglePlayButtonImage(.play)
+            playerControlView.togglePlayButtonImage(.play)
             removePeriodicTimeObserver()
             print("playing")
             
@@ -442,7 +492,7 @@ extension CustomPlayerViewController: PlayerControlViewDelegate {
         }
     }
     
-    func jumpToTime(_ playerControlview: PlayerControlView, _ jumpTimeType: JumpTimeType) {
+    private func jumpToTime(_ jumpTimeType: JumpTimeType) {
         guard let player = playerView.player as? AVQueuePlayer else { return }
         let currentSeconds = CMTimeGetSeconds(self.currentTime)
         var seekSeconds: Float64 = .zero
@@ -464,7 +514,7 @@ extension CustomPlayerViewController: PlayerControlViewDelegate {
         self.currentTime = seekCMTime
     }
     
-    func slideToTime(_ playerControlview: PlayerControlView, _ sliderValue: Double) {
+    private func slideToTime(_ sliderValue: Double) {
         guard let player = playerView.player as? AVQueuePlayer,
               let duration = player.currentItem?.duration else { return }
         let durationSeconds = CMTimeGetSeconds(duration)
@@ -474,81 +524,68 @@ extension CustomPlayerViewController: PlayerControlViewDelegate {
         self.currentTime = seekCMTime
     }
     
-    func pauseToSeek(_ playerControlview: PlayerControlView) {
-        playerView.player?.pause()
-        playerView.playerState = .pause
-        cancelAutoHidePlayerControl()
-    }
     
-    func sliderTouchEnded(_ playerControlview: PlayerControlView, _ sliderValue: Double) {
+    private func sliderTouchEnded(_ sliderValue: Double) {
         guard let player = playerView.player as? AVQueuePlayer,
               let playerItem = player.currentItem else { return }
-
+        #warning("註解")
         if sliderValue == 1 {
             currentTime = duration
-            playerControlview.togglePlayButtonImage(.play)
+            playerControlView.togglePlayButtonImage(.play)
             playerView.playerState = .ended
             removePeriodicTimeObserver()
             print("sliderValue 1")
             return
         }
-        
         if playerItem.isPlaybackLikelyToKeepUp {
             player.play()
             playerView.player?.rate = playSpeedRate
             addPeriodicTimeObserver()
             autoHidePlayerControl()
             playerView.playerState = .playing
-            playerControlview.togglePlayButtonImage(.pause)
+            playerControlView.togglePlayButtonImage(.pause)
             return
         }
-        
         bufferingForSeconds(playerItem: playerItem, player: player)
-        
     }
     
-    func adjustSpeed(_ playerControlview: PlayerControlView, _ playSpeedRate: Float) {
+    private func adjustSpeed(_ speedButtonType: SpeedButtonType) {
         playerView.player?.currentItem?.audioTimePitchAlgorithm = .spectral
         if playerView.playerState == .playing {
             playerView.player?.pause()
             playerView.player?.play()
             addPeriodicTimeObserver()
-            self.playSpeedRate = playSpeedRate
+            self.playSpeedRate = speedButtonType.speedRate
             playerView.player?.rate = playSpeedRate
             autoHidePlayerControl()
             return
         }
-        self.playSpeedRate = playSpeedRate
+        self.playSpeedRate = speedButtonType.speedRate
         playerView.player?.rate = playSpeedRate
         playerView.player?.pause()
         playerView.playerState = .pause
         cancelAutoHidePlayerControl()
     }
     
-    func proceedNextPlayerItem(_ playerControlview: PlayerControlView) {
+    private func proceedNextPlayerItem() {
         guard let player = playerView.player as? AVQueuePlayer,
               let currentItem = player.currentItem,
               let theLastItem = player.items().last else { return }
         if currentItem == theLastItem {
             player.seek(to: .zero)
-        } else {
-            player.advanceToNextItem()
-            observePlayerItem(previousPlayerItem: currentItem, currentPlayerItem: theLastItem)
+            return
         }
+        player.advanceToNextItem()
+        observePlayerItem(previousPlayerItem: currentItem, currentPlayerItem: theLastItem)
     }
     
-    /// Hide player control when user tap playerControlView.
-    func handleTapGesture(_ playerControlview: PlayerControlView) {
-        hidePlayerControl()
-    }
-    
-    func lockScreen(_ playerControlview: PlayerControlView) {
+    private func lockScreen() {
         hidePlayerControl(animateDuration: 0.2)
         addScreenLockedView()
         showScreenLockedPanel()
     }
     
-    func showAudioSubtitleSelection(_ playerControlview: PlayerControlView) {
+    private func showAudioSubtitleSelection() {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         guard let subtitleAudioViewController = storyboard.instantiateViewController(withIdentifier: SubtitleAudioViewController.reuseIdentifier) as? SubtitleAudioViewController else { return }
         subtitleAudioViewController.mediaOption = mediaOption
@@ -556,12 +593,12 @@ extension CustomPlayerViewController: PlayerControlViewDelegate {
         present(subtitleAudioViewController, animated: true, completion: nil)
     }
     
-    func dismissCustomPlayerViewController(_ playerControlview: PlayerControlView) {
+    private func dismissCustomPlayerViewController() {
         rotateDisplay(to: .portrait)
         dismiss(animated: true, completion: nil)
     }
     
-    func adjustBrightness(_ playerControlview: PlayerControlView, _ sliderValue: Double) {
+    private func adjustBrightness(_ sliderValue: Double) {
         UIScreen.main.brightness = CGFloat(sliderValue)
     }
     
