@@ -15,14 +15,6 @@ class CustomPlayerViewController: UIViewController {
         return NetworkManager()
     }()
     
-    private var isPlaybackBufferEmptyObserver: NSKeyValueObservation?
-    
-    private var isPlaybackBufferFullObserver: NSKeyValueObservation?
-    
-    private var isPlaybackLikelyToKeepUpObserver: NSKeyValueObservation?
-    
-    private var statusObserve: NSKeyValueObservation?
-    
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .landscape
     }
@@ -61,23 +53,21 @@ class CustomPlayerViewController: UIViewController {
         }
     }
     
-    private var mediaOption: MediaOption?
     private var audioSlectedIndex: Int?
     private var subTitleSlectedIndex: Int?
-
-    private var player: AVQueuePlayer? {
-        playerView.player as? AVQueuePlayer
-    }
     
-    private var itemsInPlayer: [AVPlayerItem]? {
-        player?.items()
-    }
+    private lazy var videoPlayHelper: VideoPlayHelper = {
+        let videoPlayHelper = VideoPlayHelper()
+        videoPlayHelper.delegate = self
+        return videoPlayHelper
+    }()
     
     // MARK: - UI properties
     
     private lazy var playerView: PlayerView = {
         let playerView = PlayerView()
         playerView.delegate = self
+        playerView.player = videoPlayHelper.queuePlayer
         return playerView
     }()
     
@@ -99,9 +89,9 @@ class CustomPlayerViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setPlayContent()
         setPlayerView()
         setPlayerControlView()
-        setPlayContent()
         checkNetwork(connectionHandler: connectionHandler,
                      noConnectionHandler: noConnectionHandler)
         observeScreenBrightness()
@@ -116,51 +106,14 @@ class CustomPlayerViewController: UIViewController {
     
     /// Place AVPlayerItem in AVQueuePlayer, assign to AVPlayer
     private func setPlayContent() {
-        guard let firstItem = createAVPlayerItem(Constant.sourceOne),
-              let secondItem = createAVPlayerItem(Constant.sourceTwo) else { return }
-        playerView.player = AVQueuePlayer(items: [firstItem, secondItem])
-        observePlayerItem(previousPlayerItem: nil, currentPlayerItem: firstItem)
-    }
-    
-    /// Access and gather availableMediaCharacteristicsWithMediaSelectionOptions, store in local variable.
-    private func getMediaSelectionOptions(currentPlayerItem: AVPlayerItem) {
-        var audibleOption = [DisplayNameLocale]()
-        var legibleOption = [DisplayNameLocale]()
-        for characteristic in currentPlayerItem.asset.availableMediaCharacteristicsWithMediaSelectionOptions {
-            if characteristic == .audible {
-                audibleOption = getMediaOptionDisplayDetail(currentPlayerItem: currentPlayerItem,
-                                                            characteristic: characteristic)
-            }
-            if characteristic == .legible {
-                legibleOption = getMediaOptionDisplayDetail(currentPlayerItem: currentPlayerItem,
-                                                            characteristic: characteristic)
-            }
-        }
-        mediaOption = MediaOption(avMediaCharacteristicAudible: audibleOption, avMediaCharacteristicLegible: legibleOption)
-    }
-
-    
-    /// Collect display name and locale from AVMediaCharacteristic.
-    /// - Parameters:
-    ///   - currentPlayerItem: The current item in the player.
-    ///   - characteristic: The options for specifying media type characteristics.
-    /// - Returns: An array of DisplayNameLocale.
-    private func getMediaOptionDisplayDetail(currentPlayerItem: AVPlayerItem, characteristic: AVMediaCharacteristic) -> [DisplayNameLocale] {
-        var result = [DisplayNameLocale]()
-        if let group = currentPlayerItem.asset.mediaSelectionGroup(forMediaCharacteristic: characteristic) {
-            for option in group.options {
-                let displayNameLocale = DisplayNameLocale(displayName: option.displayName,
-                                                          locale: option.locale)
-                result.append(displayNameLocale)
-            }
-        }
-        return result
+        videoPlayHelper.configQueuePlayer(Constant.sourceOne)
+        videoPlayHelper.insertPlayerItem(Constant.sourceTwo)
     }
     
     /// Pause the player and change UI state.
     private func cancelPlay(player: AVPlayer) {
         player.pause()
-        playerView.playerState = .pause
+        videoPlayHelper.playerState = .pause
         bufferTimer?.cancel()
         cancelAutoHidePlayerControl()
     }
@@ -168,9 +121,9 @@ class CustomPlayerViewController: UIViewController {
     /// Set a timer to check if AVPlayerItem.isPlaybackLikelyToKeepUp. If yes, then will play, but if not, will recall this method again.
     private func bufferingForSeconds(playerItem: AVPlayerItem, player: AVPlayer) {
         guard playerItem.status == .readyToPlay,
-              playerView.playerState != .failed else { return }
+              videoPlayHelper.playerState != .failed else { return }
         cancelPlay(player: player)
-        playerView.playerState = .buffering
+        videoPlayHelper.playerState = .buffering
         bufferTimer = BufferTimer(interval: 0, delaySecs: 3.0, repeats: false, action: { [weak self] _ in
             guard let self = self else { return }
             if playerItem.isPlaybackLikelyToKeepUp {
@@ -180,114 +133,6 @@ class CustomPlayerViewController: UIViewController {
             }
         })
         bufferTimer?.start()
-    }
-    
-    // MARK: - playerItem method
-    
-    /// Create AVPlayerItem by urlString.
-    private func createAVPlayerItem(_ urlString: String) -> AVPlayerItem? {
-        guard let url = URL(string: urlString) else { return nil }
-        return AVPlayerItem(url: url)
-    }
-    
-    /// Show indicator view when isPlaybackBufferEmpty.
-    private func onIsPlaybackBufferEmptyObserverChanged(playerItem: AVPlayerItem, change: NSKeyValueObservedChange<Bool>) {
-        if playerItem.isPlaybackBufferEmpty {
-            playerControlView.showIdicatorView()
-        }
-    }
-    
-    /// Remove indicator view when isPlaybackBufferFull.
-    private func onIsPlaybackBufferFullObserverChanged(playerItem: AVPlayerItem, change: NSKeyValueObservedChange<Bool>) {
-        if playerItem.isPlaybackBufferFull {
-            playerControlView.removeIndicatorView()
-        }
-    }
-    
-    /// Remove indicator view when isPlaybackLikelyToKeepUp.
-    private func onIsPlaybackLikelyToKeepUpObserverChanged(playerItem: AVPlayerItem, change: NSKeyValueObservedChange<Bool>) {
-        if playerItem.isPlaybackLikelyToKeepUp {
-            playerControlView.removeIndicatorView()
-        }
-    }
-    
-    /// Observe buffering for current item.
-    private func observeItemBuffering(previousPlayerItem: AVPlayerItem? = nil, currentPlayerItem: AVPlayerItem?) {
-        guard let currentPlayerItem = currentPlayerItem else { return }
-        isPlaybackBufferEmptyObserver = currentPlayerItem.observe(\.isPlaybackBufferEmpty, changeHandler: onIsPlaybackBufferEmptyObserverChanged)
-        isPlaybackBufferFullObserver = currentPlayerItem.observe(\.isPlaybackBufferFull, changeHandler: onIsPlaybackBufferFullObserverChanged)
-        isPlaybackLikelyToKeepUpObserver = currentPlayerItem.observe(\.isPlaybackLikelyToKeepUp, changeHandler: onIsPlaybackLikelyToKeepUpObserverChanged)
-    }
-    
-    /// Access AVPlayerItem duration, and media options once AVPlayerItem is loaded
-    private func observeItemStatus(previousPlayerItem: AVPlayerItem? = nil, currentPlayerItem: AVPlayerItem?) {
-        guard let currentPlayerItem = currentPlayerItem else { return }
-        statusObserve = currentPlayerItem.observe(\.status, options: [.initial, .new]) { [weak self] _, _ in
-            guard let self = self else { return }
-            self.duration = currentPlayerItem.duration
-            self.getMediaSelectionOptions(currentPlayerItem: currentPlayerItem)
-        }
-    }
-    
-    /// Observe player item did play end.
-    private func observeItemPlayEnd(previousPlayerItem: AVPlayerItem? = nil, currentPlayerItem: AVPlayerItem?) {
-        if let previousPlayerItem = previousPlayerItem {
-            NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: previousPlayerItem)
-        }
-        NotificationCenter.default.addObserver(self, selector: #selector(didPlaybackEnd), name: .AVPlayerItemDidPlayToEndTime, object: currentPlayerItem)
-    }
-    
-    /// Observe player item buffering, status and play end.
-    private func observePlayerItem(previousPlayerItem: AVPlayerItem? = nil, currentPlayerItem: AVPlayerItem?) {
-        self.observeItemBuffering(previousPlayerItem: previousPlayerItem, currentPlayerItem: currentPlayerItem)
-        self.observeItemStatus(previousPlayerItem: previousPlayerItem, currentPlayerItem: currentPlayerItem)
-        self.observeItemPlayEnd(previousPlayerItem: previousPlayerItem, currentPlayerItem: currentPlayerItem)
-    }
-
-    /// Will add observer to next player item. If it is the last item, then will dismiss player and back to launch page.
-    @objc func didPlaybackEnd() {
-        guard let player = player,
-              let itemsInPlayer = itemsInPlayer,
-              let currentItem = player.currentItem else { return }
-        presentedViewController?.dismiss(animated: true, completion: nil)
-        subTitleSlectedIndex = nil
-        audioSlectedIndex = nil
-        
-        if currentItem == itemsInPlayer.last {
-            rotateDisplay(to: .portrait)
-            dismiss(animated: true, completion: nil)
-            return
-        }
-        
-        if let nowIndex = getIndexCurrentItem(itemsInPlayer: itemsInPlayer, currentItem: currentItem) {
-            observePlayerItem(previousPlayerItem: currentItem, currentPlayerItem: itemsInPlayer[nowIndex + 1])
-        }
-    }
-    
-    /// Get index of currentItem.
-    private func getIndexCurrentItem(itemsInPlayer:[AVPlayerItem], currentItem: AVPlayerItem) -> Int? {
-        return itemsInPlayer.firstIndex(of: currentItem)
-    }
-    
-    /// Set selected audio track and subtitle to current player item.
-    private func selectMediaOption(mediaOptionType: MediaOptionType, index: Int) {
-        var displayNameLocaleArray: [DisplayNameLocale]? {
-            switch mediaOptionType {
-            case .audio:
-                return mediaOption?.avMediaCharacteristicAudible
-            case .subtitle:
-                return mediaOption?.avMediaCharacteristicLegible
-            }
-        }
-        guard let player = playerView.player as? AVQueuePlayer,
-              let currentItem = player.currentItem,
-              let group = currentItem.asset.mediaSelectionGroup(forMediaCharacteristic: mediaOptionType.avMediaCharacteristic),
-              let locale = displayNameLocaleArray?[index].locale else { return }
-        let options =
-        AVMediaSelectionGroup.mediaSelectionOptions(from: group.options, with: locale)
-        if let option = options.first {
-            currentItem.select(option, in: group)
-        }
     }
     
     // MARK: - update UI method
@@ -411,8 +256,8 @@ class CustomPlayerViewController: UIViewController {
     
     /// Pause the player, show player control, and make play button be play image.
     private func pausePlayer() {
-        playerView.player?.pause()
-        playerView.playerState = .pause
+        videoPlayHelper.queuePlayer?.pause()
+        videoPlayHelper.playerState = .pause
         cancelAutoHidePlayerControl()
         removePeriodicTimeObserver()
         playerControlView.togglePlayButtonImage(.play)
@@ -420,8 +265,8 @@ class CustomPlayerViewController: UIViewController {
     
     /// Play the player, auto hide player control, and make play button be pause image.
     private func playPlayer() {
-        playerView.player?.play()
-        playerView.playerState = .playing
+        videoPlayHelper.queuePlayer?.play()
+        videoPlayHelper.playerState = .playing
         playerView.player?.rate = playSpeedRate
         autoHidePlayerControl()
         addPeriodicTimeObserver()
@@ -429,17 +274,17 @@ class CustomPlayerViewController: UIViewController {
     }
     
     private func togglePlay() {
-        switch playerView.playerState {
-        
+        switch videoPlayHelper.playerState {
+            
         case .buffering:
             playPlayer()
-        
+            
         case .unknow, .pause, .readyToPlay:
             playPlayer()
-        
+            
         case .playing:
             pausePlayer()
-        
+            
         default:
             break
         }
@@ -465,12 +310,12 @@ class CustomPlayerViewController: UIViewController {
     private func sliderTouchEnded(_ sliderValue: Double) {
         guard let player = playerView.player as? AVQueuePlayer,
               let playerItem = player.currentItem else { return }
-
+        
         // Drag to the end of the progress bar.
         if sliderValue == 1 {
             currentTime = duration
             playerControlView.togglePlayButtonImage(.play)
-            playerView.playerState = .ended
+            videoPlayHelper.playerState = .ended
             removePeriodicTimeObserver()
             print("sliderValue 1")
             return
@@ -490,26 +335,12 @@ class CustomPlayerViewController: UIViewController {
     private func adjustSpeed(_ speedButtonType: SpeedButtonType) {
         playerView.player?.currentItem?.audioTimePitchAlgorithm = .spectral
         self.playSpeedRate = speedButtonType.speedRate
-        if playerView.playerState == .playing {
+        if videoPlayHelper.playerState == .playing {
             playPlayer()
             return
         }
         playerView.player?.rate = playSpeedRate
         pausePlayer()
-    }
-    
-    /// Proceed to next player item, if the item is the last one in the AVQueuePlayer, then will just replay the item.
-    private func proceedNextPlayerItem() {
-        guard let player = playerView.player as? AVQueuePlayer,
-              let currentItem = player.currentItem,
-              let theLastItem = player.items().last else { return }
-        if currentItem == theLastItem {
-            player.seek(to: .zero)
-            return
-        }
-        player.advanceToNextItem()
-        currentTime = .zero
-        observePlayerItem(previousPlayerItem: currentItem, currentPlayerItem: theLastItem)
     }
     
     /// Hide control panel and show locked screen view.
@@ -523,7 +354,7 @@ class CustomPlayerViewController: UIViewController {
     private func showAudioSubtitleSelection() {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         guard let subtitleAudioViewController = storyboard.instantiateViewController(withIdentifier: SubtitleAudioViewController.reuseIdentifier) as? SubtitleAudioViewController else { return }
-        subtitleAudioViewController.mediaOption = mediaOption
+        subtitleAudioViewController.mediaOption = videoPlayHelper.mediaOption
         subtitleAudioViewController.selectedAudioIndex = audioSlectedIndex
         subtitleAudioViewController.selectedSubtitleIndex = subTitleSlectedIndex
         subtitleAudioViewController.delegate = self
@@ -538,23 +369,23 @@ class CustomPlayerViewController: UIViewController {
     private func adjustBrightness(_ sliderValue: Double) {
         UIScreen.main.brightness = CGFloat(sliderValue)
     }
-
+    
 }
 
 // MARK: - PlayerControlDelegate
 
 extension CustomPlayerViewController: PlayerControlViewDelegate {
- 
+    
     func handleSliderEvent(_ playerControlview: PlayerControlView, sliderEventType: PlayerControlViewSliderEventType) {
         
         switch sliderEventType {
             
         case .progressValueChange(let sliderValue):
             slideToTime(Double(sliderValue))
-        
+            
         case .progressTouchEnd(let sliderValue):
             sliderTouchEnded(Double(sliderValue))
-        
+            
         case .brightnessValueChange(let sliderValue):
             adjustBrightness(Double(sliderValue))
         }
@@ -564,28 +395,28 @@ extension CustomPlayerViewController: PlayerControlViewDelegate {
     func handleTap(_ playerControlview: PlayerControlView, tapType: PlayerControlViewTapType) {
         
         switch tapType {
-        
+            
         case .togglePlay:
             togglePlay()
-        
+            
         case .jumpToTime(let jumpTimeType):
             jumpToTime(jumpTimeType)
-        
+            
         case .adjustSpeed(let speedButtonType):
             adjustSpeed(speedButtonType)
-        
+            
         case .proceedNextItem:
-            proceedNextPlayerItem()
-        
+            videoPlayHelper.proceedNextPlayerItem()
+            
         case .hidePlayerControl:
             hidePlayerControl()
-        
+            
         case .lockScreen:
             lockScreen()
-        
+            
         case .showAudioSubtitlePage:
             showAudioSubtitleSelection()
-        
+            
         case .dismissCustomPlayerViewController:
             dismissCustomPlayerViewController()
         }
@@ -600,7 +431,7 @@ extension CustomPlayerViewController: PlayerControlViewDelegate {
 // MARK: - NetworkCheckable
 
 extension CustomPlayerViewController: NetworkCheckable {
-
+    
     private func connectionHandler() {
         DispatchQueue.main.async {
             if let noNetworkAlert = self.noNetworkAlert {
@@ -608,13 +439,13 @@ extension CustomPlayerViewController: NetworkCheckable {
             }
         }
     }
-
+    
     private func noConnectionHandler() {
         DispatchQueue.main.async {
             self.noNetworkAlert = self.popAlert(title: Constant.networkAlertTitle, message: Constant.networkAlertMessage)
         }
     }
-
+    
 }
 
 // MARK: - PlayerViewDelegate
@@ -652,13 +483,13 @@ extension CustomPlayerViewController: SubtitleAudioSelectDelegate {
     
     /// Recieve the subtitle index from subtitleAudioViewController, and set to current player item.
     func selectSubtitle(_ subtitleAudioViewController: SubtitleAudioViewController, index: Int) {
-        selectMediaOption(mediaOptionType: .subtitle, index: index)
+        videoPlayHelper.selectMediaOption(mediaOptionType: .subtitle, index: index)
         subTitleSlectedIndex = index
     }
     
     /// Recieve the audio index from subtitleAudioViewController, and set to current player item.
     func selectAudio(_ subtitleAudioViewController: SubtitleAudioViewController, index: Int) {
-        selectMediaOption(mediaOptionType: .audio, index: index)
+        videoPlayHelper.selectMediaOption(mediaOptionType: .audio, index: index)
         audioSlectedIndex = index
     }
     
@@ -692,6 +523,39 @@ extension CustomPlayerViewController {
             playerControlView.topAnchor.constraint(equalTo: view.topAnchor),
             playerControlView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
+    }
+    
+}
+
+// MARK: - Section Heading
+
+extension CustomPlayerViewController: VideoPlayHelperProtocol {
+    
+    func didPlaybackEnd(_ VideoPlayHelper: VideoPlayHelper) {
+        guard let itemsInPlayer = videoPlayHelper.itemsInPlayer,
+              let currentItem = videoPlayHelper.currentItem else { return }
+        
+        presentedViewController?.dismiss(animated: true, completion: nil)
+        subTitleSlectedIndex = nil
+        audioSlectedIndex = nil
+        
+        if currentItem == itemsInPlayer.last {
+            rotateDisplay(to: .portrait)
+            dismiss(animated: true, completion: nil)
+            return
+        }
+    }
+    
+    func toggleIndicatorView(_ VideoPlayHelper: VideoPlayHelper, show: Bool) {
+        if show {
+            playerControlView.showIdicatorView()
+        } else {
+            playerControlView.removeIndicatorView()
+        }
+    }
+    
+    func updateDuration(_ VideoPlayHelper: VideoPlayHelper, duration: CMTime) {
+        self.duration = duration
     }
     
 }
