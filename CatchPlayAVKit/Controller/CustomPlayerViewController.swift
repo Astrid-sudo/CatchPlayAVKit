@@ -23,10 +23,6 @@ class CustomPlayerViewController: UIViewController {
         return true
     }
     
-    private var timeObserverToken: Any?
-    
-    private var bufferTimer: BufferTimer?
-    
     private var autoHideTimer: BufferTimer?
     
     var currentTime: CMTime = .zero {
@@ -89,7 +85,7 @@ class CustomPlayerViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setPlayContent()
+        configPlayer()
         setPlayerView()
         setPlayerControlView()
         checkNetwork(connectionHandler: connectionHandler,
@@ -104,63 +100,13 @@ class CustomPlayerViewController: UIViewController {
     
     // MARK: - player method
     
-    /// Place AVPlayerItem in AVQueuePlayer, assign to AVPlayer
-    private func setPlayContent() {
+    /// Configure player with url string, insert plyer item to the player.
+    private func configPlayer() {
         videoPlayHelper.configQueuePlayer(Constant.sourceOne)
         videoPlayHelper.insertPlayerItem(Constant.sourceTwo)
     }
     
-    /// Pause the player and change UI state.
-    private func cancelPlay(player: AVPlayer) {
-        player.pause()
-        videoPlayHelper.playerState = .pause
-        bufferTimer?.cancel()
-        cancelAutoHidePlayerControl()
-    }
-    
-    /// Set a timer to check if AVPlayerItem.isPlaybackLikelyToKeepUp. If yes, then will play, but if not, will recall this method again.
-    private func bufferingForSeconds(playerItem: AVPlayerItem, player: AVPlayer) {
-        guard playerItem.status == .readyToPlay,
-              videoPlayHelper.playerState != .failed else { return }
-        cancelPlay(player: player)
-        videoPlayHelper.playerState = .buffering
-        bufferTimer = BufferTimer(interval: 0, delaySecs: 3.0, repeats: false, action: { [weak self] _ in
-            guard let self = self else { return }
-            if playerItem.isPlaybackLikelyToKeepUp {
-                self.playPlayer()
-            } else {
-                self.bufferingForSeconds(playerItem: playerItem, player: player)
-            }
-        })
-        bufferTimer?.start()
-    }
-    
     // MARK: - update UI method
-    
-    /// Start observe currentTime.
-    private func addPeriodicTimeObserver() {
-        guard let player = playerView.player as? AVQueuePlayer else { return }
-        // Invoke callback every half second
-        let interval = CMTime(seconds: 0.5,
-                              preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-        // Add time observer. Invoke closure on the main queue.
-        timeObserverToken =
-        player.addPeriodicTimeObserver(forInterval: interval, queue: .main) {
-            [weak self] time in
-            guard let self = self else { return }
-            // update player transport UI
-            self.currentTime = time
-        }
-    }
-    
-    /// Stop observe currentTime.
-    private func removePeriodicTimeObserver() {
-        guard let player = playerView.player as? AVQueuePlayer else { return }
-        if let token = timeObserverToken {
-            player.removeTimeObserver(token)
-            timeObserverToken = nil
-        }
-    }
     
     /// Hide player control.
     /// - Parameter animateDuration: The duration player control view fades out.
@@ -254,95 +200,6 @@ class CustomPlayerViewController: UIViewController {
     
     // MARK: - methods use with delegate methods
     
-    /// Pause the player, show player control, and make play button be play image.
-    private func pausePlayer() {
-        videoPlayHelper.queuePlayer?.pause()
-        videoPlayHelper.playerState = .pause
-        cancelAutoHidePlayerControl()
-        removePeriodicTimeObserver()
-        playerControlView.togglePlayButtonImage(.play)
-    }
-    
-    /// Play the player, auto hide player control, and make play button be pause image.
-    private func playPlayer() {
-        videoPlayHelper.queuePlayer?.play()
-        videoPlayHelper.playerState = .playing
-        playerView.player?.rate = playSpeedRate
-        autoHidePlayerControl()
-        addPeriodicTimeObserver()
-        playerControlView.togglePlayButtonImage(.pause)
-    }
-    
-    private func togglePlay() {
-        switch videoPlayHelper.playerState {
-            
-        case .buffering:
-            playPlayer()
-            
-        case .unknow, .pause, .readyToPlay:
-            playPlayer()
-            
-        case .playing:
-            pausePlayer()
-            
-        default:
-            break
-        }
-    }
-    
-    /// Call this method when user tap jump time button.
-    private func jumpToTime(_ jumpTimeType: JumpTimeType) {
-        guard let player = playerView.player as? AVQueuePlayer else { return }
-        let seekCMTime = TimeManager.getValidSeekTime(duration: duration, currentTime: currentTime, jumpTimeType: jumpTimeType)
-        player.seek(to: seekCMTime)
-        self.currentTime = seekCMTime
-    }
-    
-    /// Call this method when user in the process of dragging progress bar slider.
-    private func slideToTime(_ sliderValue: Double) {
-        guard let player = playerView.player as? AVQueuePlayer else { return }
-        let seekCMTime = TimeManager.getCMTime(from: sliderValue, duration: duration)
-        player.seek(to: seekCMTime)
-        self.currentTime = seekCMTime
-    }
-    
-    /// Call this method when user end dragging progress bar slider.
-    private func sliderTouchEnded(_ sliderValue: Double) {
-        guard let player = playerView.player as? AVQueuePlayer,
-              let playerItem = player.currentItem else { return }
-        
-        // Drag to the end of the progress bar.
-        if sliderValue == 1 {
-            currentTime = duration
-            playerControlView.togglePlayButtonImage(.play)
-            videoPlayHelper.playerState = .ended
-            removePeriodicTimeObserver()
-            print("sliderValue 1")
-            return
-        }
-        
-        // Drag to middle and is likely to keep up.
-        if playerItem.isPlaybackLikelyToKeepUp {
-            playPlayer()
-            return
-        }
-        
-        // Drag to middle, but needs time buffering.
-        bufferingForSeconds(playerItem: playerItem, player: player)
-    }
-    
-    /// Set player playback speed rate according to correspond button type.
-    private func adjustSpeed(_ speedButtonType: SpeedButtonType) {
-        playerView.player?.currentItem?.audioTimePitchAlgorithm = .spectral
-        self.playSpeedRate = speedButtonType.speedRate
-        if videoPlayHelper.playerState == .playing {
-            playPlayer()
-            return
-        }
-        playerView.player?.rate = playSpeedRate
-        pausePlayer()
-    }
-    
     /// Hide control panel and show locked screen view.
     private func lockScreen() {
         hidePlayerControl(animateDuration: 0.2)
@@ -381,10 +238,10 @@ extension CustomPlayerViewController: PlayerControlViewDelegate {
         switch sliderEventType {
             
         case .progressValueChange(let sliderValue):
-            slideToTime(Double(sliderValue))
-            
+            videoPlayHelper.slideToTime(Double(sliderValue))
+
         case .progressTouchEnd(let sliderValue):
-            sliderTouchEnded(Double(sliderValue))
+            videoPlayHelper.sliderTouchEnded(Double(sliderValue))
             
         case .brightnessValueChange(let sliderValue):
             adjustBrightness(Double(sliderValue))
@@ -397,15 +254,16 @@ extension CustomPlayerViewController: PlayerControlViewDelegate {
         switch tapType {
             
         case .togglePlay:
-            togglePlay()
+            videoPlayHelper.togglePlay()
             
         case .jumpToTime(let jumpTimeType):
-            jumpToTime(jumpTimeType)
+            videoPlayHelper.jumpToTime(jumpTimeType)
             
         case .adjustSpeed(let speedButtonType):
-            adjustSpeed(speedButtonType)
-            
+            videoPlayHelper.adjustSpeed(speedButtonType)
+
         case .proceedNextItem:
+            currentTime = .zero
             videoPlayHelper.proceedNextPlayerItem()
             
         case .hidePlayerControl:
@@ -423,7 +281,7 @@ extension CustomPlayerViewController: PlayerControlViewDelegate {
     }
     
     func pauseToSeek(_ playerControlview: PlayerControlView) {
-        pausePlayer()
+        videoPlayHelper.pausePlayer()
     }
     
 }
@@ -530,6 +388,26 @@ extension CustomPlayerViewController {
 // MARK: - Section Heading
 
 extension CustomPlayerViewController: VideoPlayHelperProtocol {
+    
+    func updateSelectedSpeedButton(_ VideoPlayHelper: VideoPlayHelper, speedButtonType: SpeedButtonType) {
+        self.playSpeedRate = speedButtonType.speedRate
+    }
+    
+    func togglePlayButtonImage(_ VideoPlayHelper: VideoPlayHelper, playButtonType: PlayButtonType) {
+        playerControlView.togglePlayButtonImage(playButtonType)
+    }
+    
+    func autoHidePlayerControl(_ VideoPlayHelper: VideoPlayHelper) {
+        autoHidePlayerControl()
+    }
+    
+    func cancelAutoHidePlayerControl(_ VideoPlayHelper: VideoPlayHelper) {
+        cancelAutoHidePlayerControl()
+    }
+    
+    func updateCurrentTime(_ VideoPlayHelper: VideoPlayHelper, currentTime: CMTime) {
+        self.currentTime = currentTime
+    }
     
     func didPlaybackEnd(_ VideoPlayHelper: VideoPlayHelper) {
         guard let itemsInPlayer = videoPlayHelper.itemsInPlayer,
