@@ -43,7 +43,7 @@ enum PlayerControlViewSliderEventType {
     case brightnessValueChange(_ sliderValue: Float)
 }
 
-enum SpeedButtonType {
+enum SpeedButtonType: CaseIterable {
     case slow
     case normal
     case fast
@@ -510,17 +510,17 @@ class PlayerControlView: UIView {
         ])
     }
     
-    private func setProgressSliderValue(_ progress: Float) {
+     func setProgressSliderValue(_ progress: Float) {
         progressSlider.value = progress
     }
     
-    private func setCurrentTimeLabel(_ currentTime: Float) {
-        currentTimeLabel.text = TimeManager.floatToTimecodeString(seconds: currentTime) + " /"
-    }
+    func setCurrentTimeLabel(_ currentTime: String) {
+       currentTimeLabel.text = currentTime
+   }
     
-    private func setDrationLabel(_ duration: Float) {
-        durationLabel.text = TimeManager.floatToTimecodeString(seconds: duration)
-    }
+    func setDurationLabel(_ duration: String) {
+       durationLabel.text = duration
+   }
     
     // MARK: - method for CustomPlayViewController
     
@@ -549,12 +549,6 @@ class PlayerControlView: UIView {
             playButton.isHidden = false
             indicatorView.stopAnimating()
         }
-    }
-    
-    func updateProgress(currentTime: Float, duration: Float) {
-        setProgressSliderValue(currentTime / duration)
-        setCurrentTimeLabel(currentTime)
-        setDrationLabel(duration)
     }
     
     func setSpeedButtonColor(selecedSpeedButton: UIButton?) {

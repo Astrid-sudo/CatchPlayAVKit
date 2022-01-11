@@ -10,14 +10,14 @@ import AVFoundation
 // MARK: - VideoPlayHelperProtocol
 
 protocol VideoPlayHelperProtocol: AnyObject {
-    func toggleIndicatorView(_ VideoPlayHelper: VideoPlayHelper, show: Bool)
-    func updateDuration(_ VideoPlayHelper: VideoPlayHelper, duration: CMTime)
-    func updateCurrentTime(_ VideoPlayHelper: VideoPlayHelper, currentTime: CMTime)
-    func updateSelectedSpeedButton(_ VideoPlayHelper: VideoPlayHelper, speedButtonType: SpeedButtonType)
-    func didPlaybackEnd(_ VideoPlayHelper: VideoPlayHelper)
-    func togglePlayButtonImage(_ VideoPlayHelper: VideoPlayHelper, playButtonType: PlayButtonType)
-    func autoHidePlayerControl(_ VideoPlayHelper: VideoPlayHelper)
-    func cancelAutoHidePlayerControl(_ VideoPlayHelper: VideoPlayHelper)
+    func toggleIndicatorView(_ videoPlayHelper: VideoPlayHelper, show: Bool)
+    func updateDuration(_ videoPlayHelper: VideoPlayHelper, duration: CMTime)
+    func updateCurrentTime(_ videoPlayHelper: VideoPlayHelper, currentTime: CMTime)
+    func updateSelectedSpeedButton(_ videoPlayHelper: VideoPlayHelper, speedButtonType: SpeedButtonType)
+    func didPlaybackEnd(_ videoPlayHelper: VideoPlayHelper)
+    func togglePlayButtonImage(_ videoPlayHelper: VideoPlayHelper, playButtonType: PlayButtonType)
+    func autoHidePlayerControl(_ videoPlayHelper: VideoPlayHelper)
+    func cancelAutoHidePlayerControl(_ videoPlayHelper: VideoPlayHelper)
 }
 
 // MARK: - PlayerState

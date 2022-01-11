@@ -25,30 +25,6 @@ class CustomPlayerViewController: UIViewController {
     
     private var autoHideTimer: BufferTimer?
     
-    var currentTime: CMTime = .zero {
-        didSet {
-            if currentTime != oldValue {
-                playerControlView.updateProgress(currentTime: Float(CMTimeGetSeconds(currentTime)), duration: Float(CMTimeGetSeconds(duration)))
-            }
-        }
-    }
-    
-    var duration: CMTime = .zero {
-        didSet {
-            if duration != oldValue, duration != .zero {
-                playerControlView.updateProgress(currentTime: Float(CMTimeGetSeconds(currentTime)), duration: Float(CMTimeGetSeconds(duration)))
-            }
-        }
-    }
-    
-    var playSpeedRate: Float = 1 {
-        didSet {
-            if playSpeedRate != oldValue {
-                setControlViewSpeedButton(playSpeedRate:playSpeedRate)
-            }
-        }
-    }
-    
     private var audioSlectedIndex: Int?
     private var subTitleSlectedIndex: Int?
     
@@ -56,6 +32,10 @@ class CustomPlayerViewController: UIViewController {
         let videoPlayHelper = VideoPlayHelper()
         videoPlayHelper.delegate = self
         return videoPlayHelper
+    }()
+    
+    private lazy var customPlayerViewModel: CustomPlayerViewModel = {
+        return CustomPlayerViewModel()
     }()
     
     // MARK: - UI properties
@@ -91,11 +71,36 @@ class CustomPlayerViewController: UIViewController {
         checkNetwork(connectionHandler: connectionHandler,
                      noConnectionHandler: noConnectionHandler)
         observeScreenBrightness()
+        binding()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         NotificationCenter.default.removeObserver(self)
+    }
+    
+    // MARK: - view model binding
+    
+    private func binding() {
+        customPlayerViewModel.currentTime.bind { [weak self] timeString in
+            guard let self = self else { return }
+            self.playerControlView.setCurrentTimeLabel(timeString)
+        }
+        
+        customPlayerViewModel.duration.bind { [weak self] duration in
+            guard let self = self else { return }
+            self.playerControlView.setDurationLabel(duration)
+        }
+        
+        customPlayerViewModel.playProgress.bind { [weak self] progress in
+            guard let self = self else { return }
+            self.playerControlView.setProgressSliderValue(progress)
+        }
+        
+        customPlayerViewModel.playSpeedRate.bind { [weak self] playSpeedRate in
+            guard let self = self else { return }
+            self.setControlViewSpeedButton(playSpeedRate:playSpeedRate)
+        }
     }
     
     // MARK: - player method
@@ -181,22 +186,6 @@ class CustomPlayerViewController: UIViewController {
         playerControlView.updateBrightnessSliderValue()
     }
     
-    /// Toggle the slelcted button be orange.
-    private func setControlViewSpeedButton(playSpeedRate:Float) {
-        var button: UIButton? {
-            switch playSpeedRate {
-            case 0.5:
-                return playerControlView.slowSpeedButton
-            case 1:
-                return playerControlView.normalSpeedButton
-            case 1.5:
-                return playerControlView.fastSpeedButton
-            default:
-                return nil
-            }
-        }
-        playerControlView.setSpeedButtonColor(selecedSpeedButton: button)
-    }
     
     // MARK: - methods use with delegate methods
     
@@ -227,6 +216,23 @@ class CustomPlayerViewController: UIViewController {
         UIScreen.main.brightness = CGFloat(sliderValue)
     }
     
+    /// Toggle the slelcted button be orange.
+    private func setControlViewSpeedButton(playSpeedRate:Float) {
+        var button: UIButton? {
+            switch playSpeedRate {
+            case 0.5:
+                return playerControlView.slowSpeedButton
+            case 1:
+                return playerControlView.normalSpeedButton
+            case 1.5:
+                return playerControlView.fastSpeedButton
+            default:
+                return nil
+            }
+        }
+        playerControlView.setSpeedButtonColor(selecedSpeedButton: button)
+    }
+
 }
 
 // MARK: - PlayerControlDelegate
@@ -248,7 +254,6 @@ extension CustomPlayerViewController: PlayerControlViewDelegate {
         }
     }
     
-    
     func handleTap(_ playerControlview: PlayerControlView, tapType: PlayerControlViewTapType) {
         
         switch tapType {
@@ -263,7 +268,7 @@ extension CustomPlayerViewController: PlayerControlViewDelegate {
             videoPlayHelper.adjustSpeed(speedButtonType)
 
         case .proceedNextItem:
-            currentTime = .zero
+            customPlayerViewModel.changeCurrentTime(currentTime: .zero)
             videoPlayHelper.proceedNextPlayerItem()
             
         case .hidePlayerControl:
@@ -385,31 +390,34 @@ extension CustomPlayerViewController {
     
 }
 
-// MARK: - Section Heading
+// MARK: - VideoPlayHelperProtocol
 
 extension CustomPlayerViewController: VideoPlayHelperProtocol {
     
-    func updateSelectedSpeedButton(_ VideoPlayHelper: VideoPlayHelper, speedButtonType: SpeedButtonType) {
-        self.playSpeedRate = speedButtonType.speedRate
+    func updateSelectedSpeedButton(_ videoPlayHelper: VideoPlayHelper, speedButtonType: SpeedButtonType) {
+        customPlayerViewModel.changeSpeedRate(speedRate: speedButtonType.speedRate)
     }
     
-    func togglePlayButtonImage(_ VideoPlayHelper: VideoPlayHelper, playButtonType: PlayButtonType) {
+    func togglePlayButtonImage(_ videoPlayHelper: VideoPlayHelper, playButtonType: PlayButtonType) {
         playerControlView.togglePlayButtonImage(playButtonType)
     }
     
-    func autoHidePlayerControl(_ VideoPlayHelper: VideoPlayHelper) {
+    func autoHidePlayerControl(_ videoPlayHelper: VideoPlayHelper) {
         autoHidePlayerControl()
     }
     
-    func cancelAutoHidePlayerControl(_ VideoPlayHelper: VideoPlayHelper) {
+    func cancelAutoHidePlayerControl(_ videoPlayHelper: VideoPlayHelper) {
         cancelAutoHidePlayerControl()
     }
     
-    func updateCurrentTime(_ VideoPlayHelper: VideoPlayHelper, currentTime: CMTime) {
-        self.currentTime = currentTime
+    func updateCurrentTime(_ videoPlayHelper: VideoPlayHelper, currentTime: CMTime) {
+        customPlayerViewModel.changeCurrentTime(currentTime: currentTime)
+        if let duration = videoPlayHelper.currentItemDuration {
+            customPlayerViewModel.changeProgress(currentTime: currentTime, duration: duration)
+        }
     }
     
-    func didPlaybackEnd(_ VideoPlayHelper: VideoPlayHelper) {
+    func didPlaybackEnd(_ videoPlayHelper: VideoPlayHelper) {
         guard let itemsInPlayer = videoPlayHelper.itemsInPlayer,
               let currentItem = videoPlayHelper.currentItem else { return }
         
@@ -424,7 +432,7 @@ extension CustomPlayerViewController: VideoPlayHelperProtocol {
         }
     }
     
-    func toggleIndicatorView(_ VideoPlayHelper: VideoPlayHelper, show: Bool) {
+    func toggleIndicatorView(_ videoPlayHelper: VideoPlayHelper, show: Bool) {
         if show {
             playerControlView.showIdicatorView()
         } else {
@@ -432,9 +440,14 @@ extension CustomPlayerViewController: VideoPlayHelperProtocol {
         }
     }
     
-    func updateDuration(_ VideoPlayHelper: VideoPlayHelper, duration: CMTime) {
-        self.duration = duration
+    func updateDuration(_ videoPlayHelper: VideoPlayHelper, duration: CMTime) {
+        customPlayerViewModel.changeDuration(duration: duration)
+        if let currentTime = videoPlayHelper.currentItemCurrentTime {
+            customPlayerViewModel.changeProgress(currentTime: currentTime, duration: duration)
+        }
     }
+    
+    
     
 }
 
