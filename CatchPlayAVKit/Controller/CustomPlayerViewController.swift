@@ -5,7 +5,7 @@
 //  Created by Astrid on 2022/1/4.
 //
 
-import AVKit
+import UIKit
 
 class CustomPlayerViewController: UIViewController {
     
@@ -28,12 +28,6 @@ class CustomPlayerViewController: UIViewController {
     private var audioSlectedIndex: Int?
     private var subTitleSlectedIndex: Int?
     
-    private lazy var videoPlayHelper: VideoPlayHelper = {
-        let videoPlayHelper = VideoPlayHelper()
-        videoPlayHelper.delegate = self
-        return videoPlayHelper
-    }()
-    
     private lazy var customPlayerViewModel: CustomPlayerViewModel = {
         return CustomPlayerViewModel()
     }()
@@ -43,7 +37,7 @@ class CustomPlayerViewController: UIViewController {
     private lazy var playerView: PlayerView = {
         let playerView = PlayerView()
         playerView.delegate = self
-        playerView.player = videoPlayHelper.queuePlayer
+        playerView.player = customPlayerViewModel.videoPlayHelper.queuePlayer
         return playerView
     }()
     
@@ -65,7 +59,6 @@ class CustomPlayerViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        configPlayer()
         setPlayerView()
         setPlayerControlView()
         checkNetwork(connectionHandler: connectionHandler,
@@ -101,16 +94,47 @@ class CustomPlayerViewController: UIViewController {
             guard let self = self else { return }
             self.setControlViewSpeedButton(playSpeedRate:playSpeedRate)
         }
+        
+        customPlayerViewModel.playButtonType.bind { [weak self] buttonType in
+            guard let self = self else { return }
+            self.playerControlView.togglePlayButtonImage(buttonType)
+        }
+        
+        customPlayerViewModel.showIndicator.bind { [weak self] bool in
+            guard let self = self else { return }
+            if bool {
+                self.playerControlView.showIdicatorView()
+            } else {
+                self.playerControlView.removeIndicatorView()
+            }
+        }
+        
+        customPlayerViewModel.autoHidePlayerControl.bind { [weak self] bool in
+            guard let self = self else { return }
+            if bool {
+                self.autoHidePlayerControl()
+            } else {
+                self.cancelAutoHidePlayerControl()
+            }
+        }
+        
+        customPlayerViewModel.playBackEnd.bind { [weak self] bool in
+            guard let self = self else { return }
+            if bool {
+                self.presentedViewController?.dismiss(animated: true, completion: nil)
+                self.subTitleSlectedIndex = nil
+                self.audioSlectedIndex = nil
+            }
+        }
+        
+        customPlayerViewModel.isTheLastItem.bind {[weak self] bool in
+            if bool {
+                guard let self = self else { return }
+                self.rotateDisplay(to: .portrait)
+                self.dismiss(animated: true, completion: nil)
+            }
+        }
     }
-    
-    // MARK: - player method
-    
-    /// Configure player with url string, insert plyer item to the player.
-    private func configPlayer() {
-        videoPlayHelper.configQueuePlayer(Constant.sourceOne)
-        videoPlayHelper.insertPlayerItem(Constant.sourceTwo)
-    }
-    
     // MARK: - update UI method
     
     /// Hide player control.
@@ -200,7 +224,7 @@ class CustomPlayerViewController: UIViewController {
     private func showAudioSubtitleSelection() {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         guard let subtitleAudioViewController = storyboard.instantiateViewController(withIdentifier: SubtitleAudioViewController.reuseIdentifier) as? SubtitleAudioViewController else { return }
-        subtitleAudioViewController.mediaOption = videoPlayHelper.mediaOption
+        subtitleAudioViewController.mediaOption = customPlayerViewModel.videoPlayHelper.mediaOption
         subtitleAudioViewController.selectedAudioIndex = audioSlectedIndex
         subtitleAudioViewController.selectedSubtitleIndex = subTitleSlectedIndex
         subtitleAudioViewController.delegate = self
@@ -244,10 +268,10 @@ extension CustomPlayerViewController: PlayerControlViewDelegate {
         switch sliderEventType {
             
         case .progressValueChange(let sliderValue):
-            videoPlayHelper.slideToTime(Double(sliderValue))
+            customPlayerViewModel.slideToTime(Double(sliderValue))
 
         case .progressTouchEnd(let sliderValue):
-            videoPlayHelper.sliderTouchEnded(Double(sliderValue))
+            customPlayerViewModel.sliderTouchEnded(Double(sliderValue))
             
         case .brightnessValueChange(let sliderValue):
             adjustBrightness(Double(sliderValue))
@@ -259,17 +283,17 @@ extension CustomPlayerViewController: PlayerControlViewDelegate {
         switch tapType {
             
         case .togglePlay:
-            videoPlayHelper.togglePlay()
+            customPlayerViewModel.togglePlay()
             
         case .jumpToTime(let jumpTimeType):
-            videoPlayHelper.jumpToTime(jumpTimeType)
+            customPlayerViewModel.jumpToTime(jumpTimeType)
             
         case .adjustSpeed(let speedButtonType):
-            videoPlayHelper.adjustSpeed(speedButtonType)
+            customPlayerViewModel.adjustSpeed(speedButtonType)
 
         case .proceedNextItem:
             customPlayerViewModel.changeCurrentTime(currentTime: .zero)
-            videoPlayHelper.proceedNextPlayerItem()
+            customPlayerViewModel.proceedNextPlayerItem()
             
         case .hidePlayerControl:
             hidePlayerControl()
@@ -286,7 +310,7 @@ extension CustomPlayerViewController: PlayerControlViewDelegate {
     }
     
     func pauseToSeek(_ playerControlview: PlayerControlView) {
-        videoPlayHelper.pausePlayer()
+        customPlayerViewModel.pausePlayer()
     }
     
 }
@@ -346,13 +370,13 @@ extension CustomPlayerViewController: SubtitleAudioSelectDelegate {
     
     /// Recieve the subtitle index from subtitleAudioViewController, and set to current player item.
     func selectSubtitle(_ subtitleAudioViewController: SubtitleAudioViewController, index: Int) {
-        videoPlayHelper.selectMediaOption(mediaOptionType: .subtitle, index: index)
+        customPlayerViewModel.selectMediaOption(mediaOptionType: .subtitle, index: index)
         subTitleSlectedIndex = index
     }
     
     /// Recieve the audio index from subtitleAudioViewController, and set to current player item.
     func selectAudio(_ subtitleAudioViewController: SubtitleAudioViewController, index: Int) {
-        videoPlayHelper.selectMediaOption(mediaOptionType: .audio, index: index)
+        customPlayerViewModel.selectMediaOption(mediaOptionType: .audio, index: index)
         audioSlectedIndex = index
     }
     
@@ -389,66 +413,4 @@ extension CustomPlayerViewController {
     }
     
 }
-
-// MARK: - VideoPlayHelperProtocol
-
-extension CustomPlayerViewController: VideoPlayHelperProtocol {
-    
-    func updateSelectedSpeedButton(_ videoPlayHelper: VideoPlayHelper, speedButtonType: SpeedButtonType) {
-        customPlayerViewModel.changeSpeedRate(speedRate: speedButtonType.speedRate)
-    }
-    
-    func togglePlayButtonImage(_ videoPlayHelper: VideoPlayHelper, playButtonType: PlayButtonType) {
-        playerControlView.togglePlayButtonImage(playButtonType)
-    }
-    
-    func autoHidePlayerControl(_ videoPlayHelper: VideoPlayHelper) {
-        autoHidePlayerControl()
-    }
-    
-    func cancelAutoHidePlayerControl(_ videoPlayHelper: VideoPlayHelper) {
-        cancelAutoHidePlayerControl()
-    }
-    
-    func updateCurrentTime(_ videoPlayHelper: VideoPlayHelper, currentTime: CMTime) {
-        customPlayerViewModel.changeCurrentTime(currentTime: currentTime)
-        if let duration = videoPlayHelper.currentItemDuration {
-            customPlayerViewModel.changeProgress(currentTime: currentTime, duration: duration)
-        }
-    }
-    
-    func didPlaybackEnd(_ videoPlayHelper: VideoPlayHelper) {
-        guard let itemsInPlayer = videoPlayHelper.itemsInPlayer,
-              let currentItem = videoPlayHelper.currentItem else { return }
-        
-        presentedViewController?.dismiss(animated: true, completion: nil)
-        subTitleSlectedIndex = nil
-        audioSlectedIndex = nil
-        
-        if currentItem == itemsInPlayer.last {
-            rotateDisplay(to: .portrait)
-            dismiss(animated: true, completion: nil)
-            return
-        }
-    }
-    
-    func toggleIndicatorView(_ videoPlayHelper: VideoPlayHelper, show: Bool) {
-        if show {
-            playerControlView.showIdicatorView()
-        } else {
-            playerControlView.removeIndicatorView()
-        }
-    }
-    
-    func updateDuration(_ videoPlayHelper: VideoPlayHelper, duration: CMTime) {
-        customPlayerViewModel.changeDuration(duration: duration)
-        if let currentTime = videoPlayHelper.currentItemCurrentTime {
-            customPlayerViewModel.changeProgress(currentTime: currentTime, duration: duration)
-        }
-    }
-    
-    
-    
-}
-
 
