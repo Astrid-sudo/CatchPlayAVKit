@@ -17,10 +17,12 @@ public class CustomPlayerViewModel {
     let playButtonType: Box<PlayButtonType> = Box(.play)
     let showIndicator: Box<Bool> = Box(false)
     let autoHidePlayerControl: Box<Bool> = Box(true)
+    let playerControlHide: Box<Bool> = Box(false)
     let playBackEnd: Box<Bool> = Box(false)
     let isTheLastItem: Box<Bool> = Box(false)
-    
-    private(set) lazy var videoPlayHelper: VideoPlayHelper = {
+    var autoHideTimer: BufferTimer?
+
+    private(set) lazy var videoPlayHelper: PlayerProtocol = {
         let videoPlayHelper = VideoPlayHelper()
         videoPlayHelper.delegate = self
         return videoPlayHelper
@@ -38,8 +40,9 @@ public class CustomPlayerViewModel {
         videoPlayHelper.insertPlayerItem(Constant.sourceTwo)
     }
 
-    
     func changeSpeedRate(speedRate: Float) {
+        //This CatchPlayAVKit app doesn't support play reverse, so make sure the speedRate is positive.
+        guard speedRate > 0 else { return }
         playSpeedRate.value = speedRate
     }
     
@@ -54,9 +57,23 @@ public class CustomPlayerViewModel {
     }
     
     func changeProgress(currentTime: CMTime, duration: CMTime) {
+        guard duration >= currentTime else { return }
         let currenTime = CMTimeGetSeconds(currentTime)
         let duration = CMTimeGetSeconds(duration)
         self.playProgress.value = Float(currenTime / duration)
+    }
+    
+    func automaticallyHidePlayerControl() {
+        autoHideTimer?.cancel()
+        autoHideTimer = BufferTimer(interval: 0, delaySecs: 3, repeats: false, action: { [weak self] _ in
+            guard let self = self else { return }
+            self.playerControlHide.value = true
+        })
+        autoHideTimer?.start()
+    }
+    
+     func cancelAutoHidePlayerControl() {
+        autoHideTimer?.cancel()
     }
 
 }
@@ -65,30 +82,30 @@ public class CustomPlayerViewModel {
 
 extension CustomPlayerViewModel: VideoPlayHelperProtocol {
     
-    func updateSelectedSpeedButton(_ videoPlayHelper: VideoPlayHelper, speedButtonType: SpeedButtonType) {
+    func updateSelectedSpeedButton(_ videoPlayHelper: PlayerProtocol, speedButtonType: SpeedButtonType) {
         changeSpeedRate(speedRate: speedButtonType.speedRate)
     }
     
-    func togglePlayButtonImage(_ videoPlayHelper: VideoPlayHelper, playButtonType: PlayButtonType) {
+    func togglePlayButtonImage(_ videoPlayHelper: PlayerProtocol, playButtonType: PlayButtonType) {
         self.playButtonType.value = playButtonType
     }
     
-    func autoHidePlayerControl(_ videoPlayHelper: VideoPlayHelper) {
-        autoHidePlayerControl.value = true
+    func autoHidePlayerControl(_ videoPlayHelper: PlayerProtocol) {
+        automaticallyHidePlayerControl()
     }
     
-    func cancelAutoHidePlayerControl(_ videoPlayHelper: VideoPlayHelper) {
-        autoHidePlayerControl.value = false
+    func cancelAutoHidePlayerControl(_ videoPlayHelper: PlayerProtocol) {
+        cancelAutoHidePlayerControl()
     }
     
-    func updateCurrentTime(_ videoPlayHelper: VideoPlayHelper, currentTime: CMTime) {
+    func updateCurrentTime(_ videoPlayHelper: PlayerProtocol, currentTime: CMTime) {
         changeCurrentTime(currentTime: currentTime)
         if let duration = videoPlayHelper.currentItemDuration {
             changeProgress(currentTime: currentTime, duration: duration)
         }
     }
     
-    func didPlaybackEnd(_ videoPlayHelper: VideoPlayHelper) {
+    func didPlaybackEnd(_ videoPlayHelper: PlayerProtocol) {
         guard let itemsInPlayer = videoPlayHelper.itemsInPlayer,
               let currentItem = videoPlayHelper.currentItem else { return }
         
@@ -100,7 +117,7 @@ extension CustomPlayerViewModel: VideoPlayHelperProtocol {
         }
     }
     
-    func toggleIndicatorView(_ videoPlayHelper: VideoPlayHelper, show: Bool) {
+    func toggleIndicatorView(_ videoPlayHelper: PlayerProtocol, show: Bool) {
         if show {
             showIndicator.value = true
         } else {
@@ -108,7 +125,7 @@ extension CustomPlayerViewModel: VideoPlayHelperProtocol {
         }
     }
     
-    func updateDuration(_ videoPlayHelper: VideoPlayHelper, duration: CMTime) {
+    func updateDuration(_ videoPlayHelper: PlayerProtocol, duration: CMTime) {
         changeDuration(duration: duration)
         if let currentTime = videoPlayHelper.currentItemCurrentTime {
             changeProgress(currentTime: currentTime, duration: duration)

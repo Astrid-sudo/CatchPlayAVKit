@@ -10,14 +10,14 @@ import AVFoundation
 // MARK: - VideoPlayHelperProtocol
 
 protocol VideoPlayHelperProtocol: AnyObject {
-    func toggleIndicatorView(_ videoPlayHelper: VideoPlayHelper, show: Bool)
-    func updateDuration(_ videoPlayHelper: VideoPlayHelper, duration: CMTime)
-    func updateCurrentTime(_ videoPlayHelper: VideoPlayHelper, currentTime: CMTime)
-    func updateSelectedSpeedButton(_ videoPlayHelper: VideoPlayHelper, speedButtonType: SpeedButtonType)
-    func didPlaybackEnd(_ videoPlayHelper: VideoPlayHelper)
-    func togglePlayButtonImage(_ videoPlayHelper: VideoPlayHelper, playButtonType: PlayButtonType)
-    func autoHidePlayerControl(_ videoPlayHelper: VideoPlayHelper)
-    func cancelAutoHidePlayerControl(_ videoPlayHelper: VideoPlayHelper)
+    func toggleIndicatorView(_ videoPlayHelper: PlayerProtocol, show: Bool)
+    func updateDuration(_ videoPlayHelper: PlayerProtocol, duration: CMTime)
+    func updateCurrentTime(_ videoPlayHelper: PlayerProtocol, currentTime: CMTime)
+    func updateSelectedSpeedButton(_ videoPlayHelper: PlayerProtocol, speedButtonType: SpeedButtonType)
+    func didPlaybackEnd(_ videoPlayHelper: PlayerProtocol)
+    func togglePlayButtonImage(_ videoPlayHelper: PlayerProtocol, playButtonType: PlayButtonType)
+    func autoHidePlayerControl(_ videoPlayHelper: PlayerProtocol)
+    func cancelAutoHidePlayerControl(_ videoPlayHelper: PlayerProtocol)
 }
 
 // MARK: - PlayerState
@@ -34,7 +34,7 @@ enum PlayerState {
 
 // MARK: - VideoPlayHelper
 
-class VideoPlayHelper: NSObject {
+class VideoPlayHelper: PlayerProtocol {
     
     // MARK: - Properties
     
@@ -69,17 +69,17 @@ class VideoPlayHelper: NSObject {
 
     var mediaOption: MediaOption?
     
-    private var bufferTimer: BufferTimer?
+     var bufferTimer: BufferTimer?
     
-    private var timeObserverToken: Any?
+     var timeObserverToken: Any?
     
-    private var isPlaybackBufferEmptyObserver: NSKeyValueObservation?
+     var isPlaybackBufferEmptyObserver: NSKeyValueObservation?
     
-    private var isPlaybackBufferFullObserver: NSKeyValueObservation?
+     var isPlaybackBufferFullObserver: NSKeyValueObservation?
     
-    private var isPlaybackLikelyToKeepUpObserver: NSKeyValueObservation?
+     var isPlaybackLikelyToKeepUpObserver: NSKeyValueObservation?
     
-    private var statusObserve: NSKeyValueObservation?
+     var statusObserve: NSKeyValueObservation?
     
     weak var delegate: VideoPlayHelperProtocol?
     
@@ -93,7 +93,6 @@ class VideoPlayHelper: NSObject {
         observePlayerItem(previousPlayerItem: nil, currentPlayerItem: currentItem)
     }
     
-    
     /// Insert player item in AVQueuePlayer.
     /// - Parameter urlString: The url string which will used to create AVPlayerItem and insert in AVQueuePlayer.
     func insertPlayerItem(_ urlString: String) {
@@ -103,28 +102,28 @@ class VideoPlayHelper: NSObject {
     }
     
     /// Show indicator view when isPlaybackBufferEmpty.
-    private func onIsPlaybackBufferEmptyObserverChanged(playerItem: AVPlayerItem, change: NSKeyValueObservedChange<Bool>) {
+     func onIsPlaybackBufferEmptyObserverChanged(playerItem: AVPlayerItem, change: NSKeyValueObservedChange<Bool>) {
         if playerItem.isPlaybackBufferEmpty {
             delegate?.toggleIndicatorView(self, show: true)
         }
     }
     
     /// Remove indicator view when isPlaybackBufferFull.
-    private func onIsPlaybackBufferFullObserverChanged(playerItem: AVPlayerItem, change: NSKeyValueObservedChange<Bool>) {
+     func onIsPlaybackBufferFullObserverChanged(playerItem: AVPlayerItem, change: NSKeyValueObservedChange<Bool>) {
         if playerItem.isPlaybackBufferFull {
             delegate?.toggleIndicatorView(self, show: false)
         }
     }
     
     /// Remove indicator view when isPlaybackLikelyToKeepUp.
-    private func onIsPlaybackLikelyToKeepUpObserverChanged(playerItem: AVPlayerItem, change: NSKeyValueObservedChange<Bool>) {
+     func onIsPlaybackLikelyToKeepUpObserverChanged(playerItem: AVPlayerItem, change: NSKeyValueObservedChange<Bool>) {
         if playerItem.isPlaybackLikelyToKeepUp {
             delegate?.toggleIndicatorView(self, show: false)
         }
     }
     
     /// Observe buffering for current item.
-    private func observeItemBuffering(previousPlayerItem: AVPlayerItem? = nil, currentPlayerItem: AVPlayerItem?) {
+     func observeItemBuffering(previousPlayerItem: AVPlayerItem? = nil, currentPlayerItem: AVPlayerItem?) {
         guard let currentPlayerItem = currentPlayerItem else { return }
         isPlaybackBufferEmptyObserver = currentPlayerItem.observe(\.isPlaybackBufferEmpty, changeHandler: onIsPlaybackBufferEmptyObserverChanged)
         isPlaybackBufferFullObserver = currentPlayerItem.observe(\.isPlaybackBufferFull, changeHandler: onIsPlaybackBufferFullObserverChanged)
@@ -132,7 +131,7 @@ class VideoPlayHelper: NSObject {
     }
     
     /// Access AVPlayerItem duration, and media options once AVPlayerItem is loaded
-    private func observeItemStatus(previousPlayerItem: AVPlayerItem? = nil, currentPlayerItem: AVPlayerItem?) {
+     func observeItemStatus(previousPlayerItem: AVPlayerItem? = nil, currentPlayerItem: AVPlayerItem?) {
         guard let currentPlayerItem = currentPlayerItem else { return }
         statusObserve = currentPlayerItem.observe(\.status, options: [.initial, .new]) { [weak self] _, _ in
             guard let self = self else { return }
@@ -142,7 +141,7 @@ class VideoPlayHelper: NSObject {
     }
     
     /// Observe player item did play end.
-    private func observeItemPlayEnd(previousPlayerItem: AVPlayerItem? = nil, currentPlayerItem: AVPlayerItem?) {
+     func observeItemPlayEnd(previousPlayerItem: AVPlayerItem? = nil, currentPlayerItem: AVPlayerItem?) {
         if let previousPlayerItem = previousPlayerItem {
             NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: previousPlayerItem)
         }
@@ -150,7 +149,7 @@ class VideoPlayHelper: NSObject {
     }
     
     /// Observe player item buffering, status and play end.
-    private func observePlayerItem(previousPlayerItem: AVPlayerItem? = nil, currentPlayerItem: AVPlayerItem?) {
+     func observePlayerItem(previousPlayerItem: AVPlayerItem? = nil, currentPlayerItem: AVPlayerItem?) {
         self.observeItemBuffering(previousPlayerItem: previousPlayerItem, currentPlayerItem: currentPlayerItem)
         self.observeItemStatus(previousPlayerItem: previousPlayerItem, currentPlayerItem: currentPlayerItem)
         self.observeItemPlayEnd(previousPlayerItem: previousPlayerItem, currentPlayerItem: currentPlayerItem)
@@ -180,7 +179,7 @@ class VideoPlayHelper: NSObject {
     }
     
     /// Access and gather availableMediaCharacteristicsWithMediaSelectionOptions, store in local variable.
-    private func getMediaSelectionOptions(currentPlayerItem: AVPlayerItem) {
+     func getMediaSelectionOptions(currentPlayerItem: AVPlayerItem) {
         var audibleOption = [DisplayNameLocale]()
         var legibleOption = [DisplayNameLocale]()
         for characteristic in currentPlayerItem.asset.availableMediaCharacteristicsWithMediaSelectionOptions {
@@ -201,7 +200,7 @@ class VideoPlayHelper: NSObject {
     ///   - currentPlayerItem: The current item in the player.
     ///   - characteristic: The options for specifying media type characteristics.
     /// - Returns: An array of DisplayNameLocale.
-    private func getMediaOptionDisplayDetail(currentPlayerItem: AVPlayerItem, characteristic: AVMediaCharacteristic) -> [DisplayNameLocale] {
+     func getMediaOptionDisplayDetail(currentPlayerItem: AVPlayerItem, characteristic: AVMediaCharacteristic) -> [DisplayNameLocale] {
         var result = [DisplayNameLocale]()
         if let group = currentPlayerItem.asset.mediaSelectionGroup(forMediaCharacteristic: characteristic) {
             for option in group.options {
@@ -307,7 +306,7 @@ class VideoPlayHelper: NSObject {
     }
     
     /// Set a timer to check if AVPlayerItem.isPlaybackLikelyToKeepUp. If yes, then will play, but if not, will recall this method again.
-    private func bufferingForSeconds(playerItem: AVPlayerItem, player: AVPlayer) {
+     func bufferingForSeconds(playerItem: AVPlayerItem, player: AVPlayer) {
         guard playerItem.status == .readyToPlay,
               playerState != .failed else { return }
         self.cancelPlay(player: player)
@@ -324,7 +323,7 @@ class VideoPlayHelper: NSObject {
     }
 
     /// Pause player, let player control keep existing on screen.(Call this method when buffering.)
-    private func cancelPlay(player: AVPlayer) {
+     func cancelPlay(player: AVPlayer) {
         guard let queuePlayer = queuePlayer else { return }
         queuePlayer.pause()
         playerState = .pause
