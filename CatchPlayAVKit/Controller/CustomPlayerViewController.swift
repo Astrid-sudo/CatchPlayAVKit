@@ -23,8 +23,6 @@ class CustomPlayerViewController: UIViewController {
         return true
     }
     
-    private var autoHideTimer: BufferTimer?
-    
     private var audioSlectedIndex: Int?
     private var subTitleSlectedIndex: Int?
     
@@ -118,6 +116,15 @@ class CustomPlayerViewController: UIViewController {
             }
         }
         
+        customPlayerViewModel.playerControlHide.bind { [weak self] bool in
+            guard let self = self else { return }
+            if bool {
+                self.hidePlayerControl()
+            } else {
+                self.showPlayerControl()
+            }
+        }
+        
         customPlayerViewModel.playBackEnd.bind { [weak self] bool in
             guard let self = self else { return }
             if bool {
@@ -158,16 +165,11 @@ class CustomPlayerViewController: UIViewController {
     }
     
     private func autoHidePlayerControl() {
-        autoHideTimer?.cancel()
-        autoHideTimer = BufferTimer(interval: 0, delaySecs: 3, repeats: false, action: { [weak self] _ in
-            guard let self = self else { return }
-            self.hidePlayerControl()
-        })
-        autoHideTimer?.start()
+        customPlayerViewModel.automaticallyHidePlayerControl()
     }
     
     private func cancelAutoHidePlayerControl() {
-        autoHideTimer?.cancel()
+        customPlayerViewModel.cancelAutoHidePlayerControl()
     }
     
     /// Display screenLockedView.
