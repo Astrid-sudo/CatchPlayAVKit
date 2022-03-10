@@ -1,6 +1,6 @@
 //
-//  CatchPlayAVKitTests.swift
-//  CatchPlayAVKitTests
+//  TimeManagerTests.swift
+//  TimeManagerTests
 //
 //  Created by Astrid on 2022/1/4.
 //
@@ -9,7 +9,7 @@ import XCTest
 @testable import CatchPlayAVKit
 import CoreMedia
 
-class CatchPlayAVKitTests: XCTestCase {
+class TimeManagerTests: XCTestCase {
     
     override func setUpWithError() throws {
         try super.setUpWithError()
@@ -19,8 +19,7 @@ class CatchPlayAVKitTests: XCTestCase {
         try super.tearDownWithError()
     }
 
-    // seek time is longer than duration.
-    func testGetValidSeekTimeForward() {
+    func test_GetValidSeekTime_ForwardOutOfDuration() {
         // arrange
         let duration = CMTime(seconds: 120, preferredTimescale: 1)
         let currentTime = CMTime(seconds: 119, preferredTimescale: 1)
@@ -34,7 +33,7 @@ class CatchPlayAVKitTests: XCTestCase {
     }
     
     // seek time is shorter than duration.
-    func testGetValidSeekTimeBackward() {
+    func test_GetValidSeekTime_BackwardOutOfDuration() {
         // arrange
         let duration = CMTime(seconds: 120, preferredTimescale: 1)
         let currentTime = CMTime(seconds: 0, preferredTimescale: 1)
@@ -47,8 +46,7 @@ class CatchPlayAVKitTests: XCTestCase {
         XCTAssertTrue(validSeekTime == .zero)
     }
     
-    // seek time is within duration.
-    func testGetValidSeekTime() {
+    func test_GetValidSeekTime_ForwardInDuration() {
         // arrange
         let duration = CMTime(seconds: 120, preferredTimescale: 1)
         let currentTime = CMTime(seconds: 0, preferredTimescale: 1)
@@ -61,7 +59,7 @@ class CatchPlayAVKitTests: XCTestCase {
         XCTAssertTrue(validSeekTime == CMTime(seconds: 15, preferredTimescale: 1))
     }
     
-    func testGetCMTime() {
+    func test_GetCMTime() {
         // arrange
         let sliderValue = 0.5
         let duration = CMTime(seconds: 120, preferredTimescale: 1)

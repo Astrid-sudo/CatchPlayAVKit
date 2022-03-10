@@ -8,70 +8,65 @@
 import XCTest
 
 class CatchPlayAVKitUITests: XCTestCase {
+    
+    var app: XCUIApplication!
 
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-
-        // In UI tests it is usually best to stop immediately when a failure occurs.
         continueAfterFailure = false
-
-        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
+        app = XCUIApplication()
+        app.launch()
     }
 
     override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+        app.terminate()
     }
 
-    func testTapPlayOnLaunchPage() throws {
-        let app = XCUIApplication()
-        app.launch()
-        LaunchPage(app).presentPlayerPage()
+    func test_tapPlayOnLaunchPage_playerPagePlayButtonShouldExist() throws {
+        LaunchPage(app)
+            .presentPlayerPage()
         XCTAssertTrue(PlayerPage(app).playerPlayButton.exists)
     }
     
-    func testTapDismissButtonBackToLaunchPage() throws {
-        let app = XCUIApplication()
-        app.launch()
-        LaunchPage(app).presentPlayerPage()
-        PlayerPage(app).dismissButton.tap()
+    func test_tapDismissButtonOnPlayerPage_launchPagePlayButtonShouldExist() throws {
+        LaunchPage(app)
+            .presentPlayerPage()
+            .dismissPlayerPage()
         XCTAssertTrue(LaunchPage(app).playButton.exists)
     }
     
-    func testLockScreen() throws {
-        let app = XCUIApplication()
-        app.launch()
-        LaunchPage(app).presentPlayerPage()
-        PlayerPage(app).lockButton.tap()
+    func test_lockScreen_playerPagePlayButtonShouldNotExist() throws {
+        LaunchPage(app)
+            .presentPlayerPage()
+            .lockScreen()
         XCTAssertFalse(PlayerPage(app).playerPlayButton.exists)
     }
     
-    func testUnlockScreen() {
-        let app = XCUIApplication()
-        app.launch()
-        LaunchPage(app).presentPlayerPage()
-        PlayerPage(app).lockButton.tap()
-        PlayerPage(app).unlockButton.tap()
+    func test_unlockScreen_playerPagePlayButtonShouldExist() {
+        LaunchPage(app)
+            .presentPlayerPage()
+            .lockScreen()
+            .unlockScreen()
         XCTAssertTrue(PlayerPage(app).playerPlayButton.exists)
     }
     
-    func testPlayerControlAutoHide() {
-        let app = XCUIApplication()
-        app.launch()
-        LaunchPage(app).presentPlayerPage()
-        PlayerPage(app).playerPlayButton.tap()
+    func test_playerControlAutoHide_playerPagePlayButtonShouldNotExistAfter5Secs() {
+        LaunchPage(app)
+            .presentPlayerPage()
+            .playVideo()
         sleep(5)
         XCTAssertFalse(PlayerPage(app).playerPlayButton.exists)
     }
     
-    func testTapAudioSubtitleButton() {
-        let app = XCUIApplication()
-        app.launch()
-        LaunchPage(app).presentPlayerPage()
-        PlayerPage(app).subtitleAudioButton.tap()
+    func test_tapAudioSubtitleButton_subtitleAudioPageTableViewShouldExist() {
+        LaunchPage(app)
+            .presentPlayerPage()
+            .presentSubtitleAudioPage()
         XCTAssertTrue(SubtitleAudioPage(app).audioTableView.exists)
     }
 
 }
+
+// MARK: - Page Object Pattern
 
 class Page {
     var app: XCUIApplication
@@ -81,18 +76,55 @@ class Page {
 }
 
 class LaunchPage: Page {
+    
     lazy var playButton = app.buttons["play"].firstMatch
-    func presentPlayerPage() {
+    
+    @discardableResult
+    func presentPlayerPage() -> PlayerPage {
         playButton.tap()
+        return PlayerPage(app)
     }
+    
 }
 
 class PlayerPage: Page {
+    
     lazy var playerPlayButton = app.buttons["playImageButton"].firstMatch
     lazy var lockButton = app.buttons["lock"].firstMatch
     lazy var unlockButton = app.buttons["unlockButton"].firstMatch
     lazy var dismissButton = app.buttons["dismissButton"].firstMatch
     lazy var subtitleAudioButton = app.buttons["Subtitle/Audio"].firstMatch
+    
+    @discardableResult
+    func lockScreen() -> Self {
+        lockButton.tap()
+        return self
+    }
+    
+    @discardableResult
+    func unlockScreen() -> Self {
+        unlockButton.tap()
+        return self
+    }
+    
+    @discardableResult
+    func dismissPlayerPage() -> Self {
+        dismissButton.tap()
+        return self
+    }
+    
+    @discardableResult
+    func playVideo() -> Self {
+        playerPlayButton.tap()
+        return self
+    }
+    
+    @discardableResult
+    func presentSubtitleAudioPage() -> SubtitleAudioPage {
+        subtitleAudioButton.tap()
+        return SubtitleAudioPage(app)
+    }
+    
 }
 
 class SubtitleAudioPage: Page {
