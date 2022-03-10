@@ -41,7 +41,7 @@ protocol PlayerProtocol {
     
     var statusObserve: NSKeyValueObservation? { get set }
     
-    var delegate: VideoPlayHelperProtocol? { get set }
+    var delegate: PlayerProtocolDelegate? { get set }
     
     // MARK: - player item method
     

@@ -78,9 +78,9 @@ public class CustomPlayerViewModel {
 
 }
 
-// MARK: - VideoPlayHelperProtocol
+// MARK: - PlayerProtocolDelegate
 
-extension CustomPlayerViewModel: VideoPlayHelperProtocol {
+extension CustomPlayerViewModel: PlayerProtocolDelegate {
     
     func updateSelectedSpeedButton(_ videoPlayHelper: PlayerProtocol, speedButtonType: SpeedButtonType) {
         changeSpeedRate(speedRate: speedButtonType.speedRate)

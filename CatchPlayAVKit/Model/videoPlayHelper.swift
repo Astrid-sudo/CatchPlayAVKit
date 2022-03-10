@@ -7,9 +7,9 @@
 
 import AVFoundation
 
-// MARK: - VideoPlayHelperProtocol
+// MARK: - PlayerProtocolDelegate
 
-protocol VideoPlayHelperProtocol: AnyObject {
+protocol PlayerProtocolDelegate: AnyObject {
     func toggleIndicatorView(_ videoPlayHelper: PlayerProtocol, show: Bool)
     func updateDuration(_ videoPlayHelper: PlayerProtocol, duration: CMTime)
     func updateCurrentTime(_ videoPlayHelper: PlayerProtocol, currentTime: CMTime)
@@ -81,7 +81,7 @@ class VideoPlayHelper: PlayerProtocol {
     
      var statusObserve: NSKeyValueObservation?
     
-    weak var delegate: VideoPlayHelperProtocol?
+    weak var delegate: PlayerProtocolDelegate?
     
     // MARK: - player item method
     
